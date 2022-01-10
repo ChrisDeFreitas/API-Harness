@@ -1,0 +1,7 @@
+{
+  "files.watcherExclude": {
+    "/var/www/html/API-Harness/node_modules/*": true,
+    "/var/www/html/API-Harness/tmp/*": true,
+    "/var/www/html/guitarjoe/node_modules/*": true
+  }
+}

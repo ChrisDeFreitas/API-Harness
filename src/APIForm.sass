@@ -1,0 +1,144 @@
+//
+  APIForm.sass
+  - by Chris DeFreitas, ChrisDeFreitas777@gmail.com
+
+
+@use 'sass:color'
+
+@mixin hoverStyle 
+  background-color: LimeGreen
+  color: white 
+
+
+$frmBGColor: #338a  //b8a575
+
+.appHeader
+  background: $frmBGColor
+  border: 1px outset #0082
+  border-radius: 15px
+  font-size: 20px
+  font-weight: bold
+  margin: 1em 
+  padding: 0.25em
+  text-shadow: 1px 1px #fff3
+  width: 10em  
+
+.apiForm
+  background-color: $frmBGColor
+  // filter: blur(1px)
+  border: 2px #fff3 outset
+  border-radius: 15px
+  // box-shadow: 15px 15px 15px #0038
+  font-size: 14px
+  outline: 1px solid #0003
+  padding: 1em 
+  position: relative
+  top: -10vh
+  margin: 0 auto
+  height: auto
+  width: 45em
+
+.frmPanel
+  background-color: color.scale( $frmBGColor, $lightness: 50% )
+  border: 1px outset #000
+  border-radius: 5px
+  height: auto
+  padding: 1em 0 0.5em
+  margin: 0.2em auto 0 auto
+  overflow: hidden
+  width: auto
+
+  &:first-child
+    margin: 0 auto
+
+.modebar
+  padding-left: 2em
+  text-align: left
+  span
+    border-radius: 10px
+    color: #0007
+    cursor: pointer
+    display: inline-table
+    font-size: 1em
+    font-weight: bold
+    margin: 0 0 5px 0
+    padding: 0 1em 2px 1em
+    text-align: center
+    &:hover
+      @include hoverStyle
+    &.selected
+      background-color: #4ea7d0
+      color: #eee
+      text-shadow: 1px 1px #000
+
+.frmButtonbar
+  text-align: center
+  width: 100%
+  button
+    border: 1px outset #0007
+    border-radius: 5px
+    // padding: 0
+    width: 5em
+
+.editBox
+  display: table
+  margin: 0
+  overflow: hidden
+  padding: 5px 0
+  text-align: left
+  .heading
+    display: inline-table
+    font-size: 0.8em
+    padding-left: 3em
+    position: relative
+    text-shadow: 1px 1px #fff6
+    top: 8px
+    vertical-align: top
+    width: 5em
+  input,
+  textarea
+    border: 1px outset #0005
+    border-radius: 5px
+    color: #000
+    font-family: sans-serif
+    font-size: 1em
+    // margin: 0 5px 0 0 
+    padding: 5px
+    width: 30em
+  input:disabled,
+  textarea:disabled
+    // background-color: red
+    color: #777
+    text-shadow: 1px 1px 1px #fff
+  .btnIconEnabled,
+  .btnIcon
+    color: #311763
+    cursor: default
+    font-size: 1.25em
+    // margin: 0 0 0 5px
+    padding: 2px
+    position: relative
+    text-shadow: 1px 1px #fff6
+    top: 4px
+  .btnIcon
+    cursor: pointer
+    &:hover
+      @include hoverStyle
+      border-radius: 10px
+    &:active
+      background-color: color.scale( LimeGreen, $lightness: 50% )
+
+.editBox_url .heading
+  color: #000
+  font-size: 1em
+  font-weight: bold
+  width: 3em
+
+.logText,
+.resultText
+  font-size: 0.8em
+  height: 100%
+  margin: 0 auto
+  overflow: auto
+  padding: 1em
+  width: 95%
