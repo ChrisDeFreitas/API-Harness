@@ -236,6 +236,7 @@ class APIForm extends React.Component{
             getCacheVal={ this.getCacheVal }
           />
           <EditBox 
+            // canDisable={false}
             colname='host' 
             heading='Host' 
             value={this.state.host} 
@@ -258,9 +259,9 @@ class APIForm extends React.Component{
           />
           { qListControls }
           <EditBox 
-            colname='hash' 
-            heading='Hash' 
-            value={this.state.hash} 
+            colname='fragment' 
+            heading='Fragment' 
+            value={this.state.fragment} 
             onChange={this.ctrlChange}
             getCacheVal={ this.getCacheVal }
           />         
@@ -297,7 +298,7 @@ class APIForm extends React.Component{
             id='result'
             readOnly
             rows={12}
-            value={ this.state.log }
+            value={ this.state.result }
             wrap='off'
           />
         </div>

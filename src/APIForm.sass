@@ -31,7 +31,7 @@ $frmBGColor: #338a  //b8a575
   // box-shadow: 15px 15px 15px #0038
   font-size: 14px
   outline: 1px solid #0003
-  padding: 1em 
+  padding: 1em
   position: relative
   top: -10vh
   margin: 0 auto
@@ -62,13 +62,16 @@ $frmBGColor: #338a  //b8a575
     font-size: 1em
     font-weight: bold
     margin: 0 0 5px 0
-    padding: 0 1em 2px 1em
+    padding: 2px 0 2px 0
     text-align: center
+    width: 6em
     &:hover
       @include hoverStyle
     &.selected
-      background-color: #4ea7d0
+      background-color: #0785
+      border: 1px inset #aaa6
       color: #eee
+      cursor: default
       text-shadow: 1px 1px #000
 
 .frmButtonbar
@@ -87,8 +90,10 @@ $frmBGColor: #338a  //b8a575
   padding: 5px 0
   text-align: left
   .heading
+    color: #000
     display: inline-table
     font-size: 0.8em
+    // font-weight: 300
     padding-left: 3em
     position: relative
     text-shadow: 1px 1px #fff6
@@ -112,10 +117,9 @@ $frmBGColor: #338a  //b8a575
     text-shadow: 1px 1px 1px #fff
   .btnIconEnabled,
   .btnIcon
-    color: #311763
+    color: #0003
     cursor: default
-    font-size: 1.25em
-    // margin: 0 0 0 5px
+    font-size: 1.2em
     padding: 2px
     position: relative
     text-shadow: 1px 1px #fff6

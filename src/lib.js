@@ -13,7 +13,7 @@
     path
     port
     query
-    hash
+    fragment
   }
 
 */
@@ -61,7 +61,7 @@ const q = {
           url += str
         }
       }
-      url += test('hash',     '#', '')
+      url += test('fragment',     '#', '')
 
       return url
     },
@@ -76,7 +76,7 @@ const q = {
         path:   url.pathname,
         query:  url.search,
         // qList:  [],
-        hash:   url.hash
+        fragment:   url.fragment
       }
       if( ':' === uobj.protocol[ url.protocol.length -1 ] )
         uobj.protocol = uobj.protocol.substring( 0 , uobj.protocol.length -1 )

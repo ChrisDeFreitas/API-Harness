@@ -30,5 +30,9 @@ Next:
 
 ## Updates
 
-### 20220110
+#### 20220111
+- UI tweaks
+- removed unused files
+
+#### 20220110
 - upload of working UI 

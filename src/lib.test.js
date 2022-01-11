@@ -41,10 +41,10 @@ describe('test q.url.join()', () => {
     expect( url ).toBeTruthy()
     expect( url ).toBe( '//xx.com/a/b/c' )
   })
-  it('{protocol:"https:", user:"bill", host:"xx.com", query:"aaa&bbb", hash:"hash"}', () => {
-    let url = q.url.join( {protocol:"https:", user:"bill", host:"xx.com", query:"aaa&bbb", hash:"hash"})
+  it('{protocol:"https:", user:"bill", host:"xx.com", query:"aaa&bbb", fragment:"fragment"}', () => {
+    let url = q.url.join( {protocol:"https:", user:"bill", host:"xx.com", query:"aaa&bbb", fragment:"fragment"})
     expect( url ).toBeTruthy()
-    expect( url ).toBe( 'https:://bill@xx.com?aaa&bbb#hash' )
+    expect( url ).toBe( 'https:://bill@xx.com?aaa&bbb#fragment' )
   })
   it('{host:"xx.com", port:80}, ["aaa","bbb"]', () => {
     let url = q.url.join( {host:"xx.com", port:80}, ["aaa","bbb"] )
