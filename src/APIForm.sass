@@ -5,12 +5,26 @@
 
 @use 'sass:color'
 
+$frmBGColor: #338a  //b8a575
+$btnBgColorSelected: #a8dcffad
+$btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
+
 @mixin hoverStyle 
   background-color: LimeGreen
   color: white 
 
-
-$frmBGColor: #338a  //b8a575
+@mixin btnStyle 
+  background-color: $btnBgColor
+  color: #000d
+  cursor: pointer
+  border: 1px outset #0007
+  border-radius: 5px
+  padding: 0 
+  text-shadow: 1px 1px 1px #fff6
+@mixin btnDisabledStyle
+  background-color: #fff9
+  color: #0009
+  cursor: default
 
 .appHeader
   background: $frmBGColor
@@ -25,7 +39,6 @@ $frmBGColor: #338a  //b8a575
 
 .apiForm
   background-color: $frmBGColor
-  // filter: blur(1px)
   border: 2px #fff3 outset
   border-radius: 15px
   // box-shadow: 15px 15px 15px #0038
@@ -47,9 +60,37 @@ $frmBGColor: #338a  //b8a575
   margin: 0.2em auto 0 auto
   overflow: hidden
   width: auto
-
   &:first-child
     margin: 0 auto
+  &.frmData
+    height: 50vh
+    overflow-y: auto
+
+.pngIcon
+  filter: drop-shadow(1px 1px 0px #fff) opacity(0.6) // contrast(0.7)
+  height: 50px
+  position: absolute
+  right: 28px
+  top: 70px
+  opacity: 0
+  width: 50px
+  backface-visibility: visible
+  transform: rotateZ(-46deg)
+  transform-origin: 0px 48px
+  transform-style: preserve-3d
+  transition: opacity 300ms
+@keyframes spin 
+    0%
+      transform: rotateZ(-46deg)
+    25%
+      transform: rotateZ(-90deg)
+    75%
+      transform: rotateZ(0deg)
+    100%
+      transform: rotateZ(-46deg)
+.pngIconSpin
+  animation: spin 4s infinite linear
+  opacity: 1
 
 .modebar
   padding-left: 2em
@@ -74,14 +115,34 @@ $frmBGColor: #338a  //b8a575
       cursor: default
       text-shadow: 1px 1px #000
 
-.frmButtonbar
+
+.frmButtonbar,
+.resultBar
+  background-color: color.scale( $frmBGColor, $lightness: -30% )
+  border-radius: 5px
+  margin: 0 auto 5px auto
+  padding: 2px 0 
   text-align: center
-  width: 100%
+  width: 95%
   button
-    border: 1px outset #0007
-    border-radius: 5px
-    // padding: 0
+    @include btnStyle
+    font-size: 0.7em
+    margin: 0 5px 0 0
     width: 5em
+    &.selected
+      color: #fff
+      text-shadow: 1px 1px #000a
+      background-color: $btnBgColorSelected
+    &:disabled,
+    &:disabled:hover
+      @include btnDisabledStyle
+    &:hover
+      @include hoverStyle
+.frmButtonbar
+  button
+    margin: 0 15px 0 0
+    font-size: 1em
+
 
 .editBox
   display: table
@@ -93,7 +154,6 @@ $frmBGColor: #338a  //b8a575
     color: #000
     display: inline-table
     font-size: 0.8em
-    // font-weight: 300
     padding-left: 3em
     position: relative
     text-shadow: 1px 1px #fff6
@@ -107,7 +167,6 @@ $frmBGColor: #338a  //b8a575
     color: #000
     font-family: sans-serif
     font-size: 1em
-    // margin: 0 5px 0 0 
     padding: 5px
     width: 30em
   input:disabled,
@@ -132,17 +191,33 @@ $frmBGColor: #338a  //b8a575
     &:active
       background-color: color.scale( LimeGreen, $lightness: 50% )
 
-.editBox_url .heading
-  color: #000
-  font-size: 1em
-  font-weight: bold
-  width: 3em
+.editBox_url 
+  .heading
+    color: #000
+    font-size: 1em
+    font-weight: bold
+    width: 3em
+  .btnIconEnabled,
+  .btnIcon
+    font-size: 2em
+  .btnIconEnabled
+    // visibility: hidden
 
 .logText,
-.resultText
+.resultText,
+.resultJSON,
+.resultXML
+  background-color: #fff 
   font-size: 0.8em
-  height: 100%
   margin: 0 auto
   overflow: auto
   padding: 1em
-  width: 95%
+  text-align: left
+  width: 94%
+.resultText,
+.resultJSON,
+.resultXML
+  height: 83%
+.logText
+  height: 88%
+  line-height: 1.6em

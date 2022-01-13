@@ -10,10 +10,10 @@ EditBox.jsx
 
 
 returns:
-  <span className="editBox editBox_[props.colname]">
-    <span>[props.heading]</span>
-    <input type="text" value="URL" dataset-colname=[props.colname] ... >
-    {editing icons}
+  <span className="editBox editBox_{props.colname}">
+    <span>{props.heading}</span>
+    <input type="text" value={props.value} dataset-colname={props.colname} ... >
+    {edit icons}
   </span>  
 */
 
@@ -21,7 +21,6 @@ import React from 'react'
 import PropTypes from 'prop-types';
 import './APIForm.sass'
 
-// const EditBox = ( props ) => {
 const EditBox = React.forwardRef((props, ref) => {
   // console.log('EditBox.constructor()', props)
   
@@ -51,7 +50,7 @@ const EditBox = React.forwardRef((props, ref) => {
         clearEvent( event )
         event.preventDefault()
       } else
-      if(event.key === 'n'){
+      if(event.key === 'n' && props.multiHandler){
         props.multiHandler( event )
         event.preventDefault()
       } 
@@ -67,7 +66,6 @@ const EditBox = React.forwardRef((props, ref) => {
   }  
   function resetEvent( event ){
     let val = props.getCacheVal( colname, multi )
-    console.log('resetEvent', colname, multi, val)
     setVal( val )
     if( props.onChange != null )
       props.onChange( colname, val, active, multi )
@@ -144,7 +142,7 @@ EditBox.propTypes = {
   multi: PropTypes.number,      // id of multi input items
   multiHandler: PropTypes.func, // parent function to add dynamic input
   
-  onChange: PropTypes.func, // parent function to add dynamic input
+  onChange: PropTypes.func,
   getCacheVal: PropTypes.func,
 }
 EditBox.defaultProps = {
