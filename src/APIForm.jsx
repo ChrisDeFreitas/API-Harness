@@ -26,11 +26,14 @@ class APIForm extends React.Component{
     super(props)
 
     // this.cache = q.url.parse('https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=522fdc88c5fec5c9f9598045831f4a42&tags=beach&format=json&nojsoncallback=1')
-    // this.cache = q.url.parse('https://api.publicapis.org/entries')
-    this.cache = q.url.parse('https://api.publicapis.org/entries?description=health')
+    this.cache = q.url.parse('https://api.publicapis.org/entries')
+    // this.cache = q.url.parse('https://api.publicapis.org/entries?description=health')
     // this.cache = q.url.parse('https://www.songsterr.com/a/ra/songs.json?pattern=Marley')
     // this.cache = q.url.parse('https://www.songsterr.com/a/ra/songs.xml?pattern=Marley')
     // this.cache = q.url.parse('https://api.opentopodata.org/v1/test-dataset?locations=56,123')
+    // this.cache = q.url.parse('https://api.open-elevation.com/api/v1/lookup?locations=10,10|20,20|41.161758,-8.583933')
+    // this.cache = q.url.parse('https://sportsdatabase.com/NBA/query.html?sdql=A%28points%29%40points%3E100+and+team&submit=++S+D+Q+L+%21++')
+    // this.cache = q.url.parse('https://jsonplaceholder.typicode.com/posts/1')
     this.cache.header = ['']
     this.cache.qList = q.query.parse( this.cache.query )
     if( this.cache.header.length === 0) this.cache.header.push('')
@@ -43,7 +46,7 @@ class APIForm extends React.Component{
       qList: [ ...this.cache.qList ],
       log:'',
       resultData:'',
-      resultType:'text'   //one of: text, json, xml
+      resultType:'Text'   //one of: Text, JSON, XML
     }
     
     this.autoFocus = ''
@@ -56,9 +59,10 @@ class APIForm extends React.Component{
     this.controller = new AbortController()
     this.logNum = 0
     
-    this.apiExec = this.apiExec.bind( this )
-    this.apiExecCallback = this.apiExecCallback.bind( this )
-    this.apiExecCancel = this.apiExecCancel.bind( this )
+    this.fetch = this.fetch.bind( this )
+    // this.apiAjaxCallback = this.apiAjaxCallback.bind( this )
+    this.fetchCallback = this.fetchCallback.bind( this )
+    this.fetchCancel = this.fetchCancel.bind( this )
 
     this.ctrlChange = this.ctrlChange.bind( this )
     this.getCacheVal = this.getCacheVal.bind( this )
@@ -81,74 +85,98 @@ class APIForm extends React.Component{
   }
 
   //
-  apiExec( event ){
+  fetch( event ){
     event.preventDefault()
     
     this.controller = new AbortController()
-    this.apiLogWrite( 'Exec lib.ajax() with:', this.state.url, true )
+    let str = this.state.url
+    if( this.state.header.length > 0
+    &&( !(this.state.header.length === 1 && this.state.header[0].trim() === '')))
+      str += '\nHeaders:\n' +this.state.header.join( '\n' )
+
+    this.logWrite( 'Exec lib.fetch() with:', str, true )
     this.setState({ 
       resultData:'',
-      resultType:'text',
+      resultType:'Text',
       mode:'Exec' 
     })
 
     this.apiTimer = performance.now()
-    q.ajax(
+    q.fetch(
       this.state.url, 
-      null, //this.controller, //axios fails with: TypeError: config.signal.addEventListener is not a function
-      this.apiExecCallback, 
+      this.controller.signal,
+      this.fetchCallback, 
+      this.state.header,
       true 
     )
   }
-  apiExecCallback( type, obj, debug, progressNum ){
-    if( type === 'progress' ){    // obj = progressEvent
-      let ss = obj.loaded +' bytes received'
-      if( obj.lengthComputable === true )
-        ss += ' of ' +obj.total +' - ' +(obj.loaded /obj.total *100) + '%'
-      this.apiLogWrite( 'Progress #'+progressNum +':' +ss +', ' +obj.timeStamp +'ms')
+  fetchCallback( type, obj, debug ){
+    if( type === 'progress' ){    // obj = { num, ms, current, total }
+      let pcent = (obj.total === 0 ?'' : `, ${ obj.current /obj.total *100 }%` )
+      this.logWrite( 
+        `Progress #${obj.num}: ${q.bytesToStr( obj.current )}${pcent}, ${obj.ms}ms`
+      )
     } else
-    if( type === 'response' ){    // obj = response object
+    if( type === 'response' ){    // obj = Response object
+      this.apiTimer = performance.now() -this.apiTimer
+      this.controller = null
+      let data = obj.data
+
+      this.logWrite( 'Status: ' +obj.status +' ' +obj.statusText )
+      this.logWrite( 'Server URL: ' +obj.url )
+      this.logWrite( 'Response Type: ' +obj.type )
+      this.logWrite( 'Response Redirected: ' +obj.redirected )
+      this.logWrite( 'Duration: ' +this.apiTimer +'ms' )
+      this.logWrite( 'Debug: ' +debug )
+      // Response.trailers
+      this.logWrite( 'Data size: ' +q.bytesToStr( obj.dataLength ))
+      this.logWrite( 'Response:', data )
+      this.resultWrite( data )
+    } else
+    if( type === 'error' ){   // obj = Response || TypeError event
       this.apiTimer = performance.now() -this.apiTimer
       this.controller = null
 
-      let str = obj.response
-      if( typeof str  === 'object' )
-        str = JSON.stringify( str, null, 3)
-
-      this.apiLogWrite( 'Status: ' +obj.status +' ' +obj.statusText )
-      this.apiLogWrite( 'Data size: ' + q.bytesToStr(( new TextEncoder().encode( str )).length ))
-      this.apiLogWrite( 'Debug: ' +debug )
-      this.apiLogWrite( 'Duration: ' +this.apiTimer +'ms' )
-      this.apiLogWrite( 'Response:', str)
-      this.apiResultWrite( obj.response )
-    } else
-    if( type === 'error' ){   // obj = error 
-      this.apiTimer = performance.now() -this.apiTimer
-      this.controller = null
-
-      if( debug === false)
-        console.log('Axios error thrown:', obj)
-      if( obj.status )
-        this.apiLogWrite('Ajax error:', 'Status ' +obj.status +', ' +obj.statusText )
-      else
-        this.apiLogWrite('Ajax error:', obj )
+      if( obj.status ){     // obj = TypeError event
+        this.logWrite( 'Server error:', 'Status ' +obj.status +', ' +obj.statusText )
+      } 
+      else{     // obj = error event
+        this.logWrite( 'Network error (details not available to scripts by design):', obj.message
+          +`\n- Ctrl+Shift+i to review Javascript console.`
+          +`\n- CORS errors may be due to:`
+          +`\n  1. server's request filtering--try url in browser address bar`
+          +`\n  2. an error in a URL parameter--run in browser to get error messages`
+        )
+      }
+  
+      this.logWrite( 'Duration: ' +this.apiTimer +'ms' )
+      this.logWrite( 'Debug: ' +debug )
+      this.setState({ 
+        resultData:'Error',
+        resultType:'Text',
+        mode:'Log' 
+      })
     }
     else
-      throw new Error( `APIForm.apiExecCallback() error, unknown type received: [${type}].` )
+      throw new Error( `APIForm.fetchCallback() error, unknown type received: [${type}].` )
   }
-  apiExecCancel( event ){
+  fetchCancel( event ){
     event.preventDefault()
-    if( this.state !== 'Exec' && this.controller === null ) return
+    if( this.state !== 'Exec' || this.controller === null ) return
 
     this.apiTimer = performance.now() -this.apiTimer
     this.controller.abort()
-
     this.controller = null
-    this.apiLogWrite( 'Execution cancelled by user.' )
-    this.apiLogWrite( 'Duration: ' +this.apiTimer +'ms' )
-    this.setState({ mode:'Log' })
+
+    this.logWrite( 'Execution cancelled by user.' )
+    this.logWrite( 'Duration: ' +this.apiTimer +'ms' )
+    this.setState({ 
+      resultData:'Execution cancelled by user.',
+      resultType:'Text',
+      mode:'Log' 
+    })
   }
-  apiLogWrite( head, str = '', reset = false ){
+  logWrite( head, str = '', reset = false ){
     
     let buf = ''
     if( reset === true )
@@ -170,13 +198,13 @@ class APIForm extends React.Component{
     str = buf +newstr
     this.setState({ log:str })
   }
-  apiResultWrite( result ){
+  resultWrite( result ){
     let type = 'text'
     if( typeof result === 'object' || result[0] === '{' || result[0] === '[')
-      type = 'json'
+      type = 'JSON'
     else
     if( result.trim()[0] === '<' )
-      type = 'xml'
+      type = 'XML'
 
     this.setState({ 
       resultData:result,
@@ -308,8 +336,8 @@ class APIForm extends React.Component{
           />
           <img src={png} ref={ this.pngRef } className='pngIcon' alt='' ></img>
           <div className='frmButtonbar'>
-            <button onClick={this.apiExec} >Exec</button>
-            <button disabled={ true /*this.state.active !== 'Exec'*/ } onClick={this.apiExecCancel} >Cancel</button> 
+            <button disabled={ this.state.mode === 'Exec' }onClick={this.fetch} >Exec</button>
+            <button disabled={ this.state.mode !== 'Exec' } onClick={this.fetchCancel} >Cancel</button> 
           </div>
         </div>
       </>      
@@ -447,16 +475,16 @@ class APIForm extends React.Component{
         <div className='frmPanel frmData' >
           { this.getModeBar( 'Result' ) }
           <div className='resultBar' >
-            <button onClick={this.setResultType} data-type='text' 
-              className={ resultType === 'text' ?'selected' :''} >Text</button>
-            <button onClick={this.setResultType} data-type='json' 
+            <button onClick={this.setResultType} data-type='Text' 
+              className={ resultType === 'Text' ?'selected' :''} >Text</button>
+            <button onClick={this.setResultType} data-type='JSON' 
               disabled = { typeof resultData !== 'object' &&  resultData[0] !== '{' && resultData[0] !== '[' }
-              className={ resultType === 'json' ?'selected' :''}  >JSON</button>
-            <button onClick={this.setResultType} data-type='xml'  
+              className={ resultType === 'JSON' ?'selected' :''}  >JSON</button>
+            <button onClick={this.setResultType} data-type='XML'  
               disabled = { typeof resultData === 'object' || resultData.trim()[0] !== '<' }
-              className={ resultType === 'xml' ?'selected' :''} >XML</button>
+              className={ resultType === 'XML' ?'selected' :''} >XML</button>
           </div>
-          { resultType === 'text'  && <textarea key='resulttext' ref={ this.resultRef }
+          { resultType === 'Text'  && <textarea key='resulttext' ref={ this.resultRef }
           // {  <textarea key='resulttext' ref={ this.resultRef }
             className='resultText'
             readOnly
@@ -466,7 +494,7 @@ class APIForm extends React.Component{
             }
             wrap='on'
           />}
-          { resultType === 'json'  && 
+          { resultType === 'JSON'  && 
             <div className='resultJSON' >
               <ReactJson key='resultjson'
                 src={ typeof resultData === 'object'
@@ -490,7 +518,7 @@ class APIForm extends React.Component{
               />
             </div>
           }
-          { resultType === 'xml'  && 
+          { resultType === 'XML'  && 
             <div className='resultXML' >
               <XMLViewer key='resultxml'
                 xml={ resultData }
@@ -499,7 +527,7 @@ class APIForm extends React.Component{
               />
             </div>
           }
-          {/* { resultType === 'xml'  && <textarea key='resultxml' ref={ this.resultRef }
+          {/* { resultType === 'XML'  && <textarea key='resultxml' ref={ this.resultRef }
             className='resultXML'
             readOnly
             defaultValue={ resultData }

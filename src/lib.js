@@ -40,9 +40,8 @@ var q = {
 	},
   ajax(
     url = '', 
-    abortController = null, 
-    callback = null, 
-    debug = false
+    callback = null,       // callback( type=error/response/progress, obj=string/xhr/progressevent ) 
+    debug = false          // true === write status to console
   ){
     if(callback === null) debug = true
 
@@ -55,7 +54,7 @@ var q = {
       // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequestEventTarget/onerror
       console.log('xhr.onerror', event)
       if( callback )
-        callback( 'error', 'A network error occurred - no Javascript info available.', debug )
+        callback( 'error', 'A network error occurred - no info available to Javascript.', debug )
     }
     xhr.onprogress = function( event ) {
       if( callback != null){
@@ -94,7 +93,122 @@ var q = {
     // xhr.withCredentials = true
     // xhr.setRequestHeader('Access-Control-Allow-Origin', '*')
     // xhr.setRequestHeader('Access-Control-Allow-Credentials', 'true')
-    xhr.send()
+  
+    try{
+      xhr.send()
+    }
+    catch( err ){
+      console.log( 'AJAX send error:', err )
+      if( callback !== null)
+        callback( 'error', err )
+    }
+  },
+  fetch(    
+    url = '', 
+    signal = null,         // AbortController
+    callback = null,       // callback( type=error/response/progress, Response||TypeError/Response/{ num, ms, current, total } ) 
+    headers = null,        // [ 'xxx=yyy', ... ]
+    debug = false          // true === write status to console
+  ){
+    if(callback === null) debug = true
+
+    if( debug ){
+      console.log( 'Fetch URL:', url )
+      console.log( 'Fetch Request Headers:\n', headers )
+    }
+    
+    let hdrs = null
+    if(debug && headers != null && headers.length > 0){
+      headers.forEach( line => {
+        if( line.trim() === '' ) return
+        if( hdrs === null) hdrs = new Headers()
+        let vals = line.split( ':' )
+        hdrs.append( vals[0].trim(), vals[1].trim() )
+      })
+    }
+
+    const init = {
+      method: 'GET',
+      body: null,
+      cache: 'default',
+      // credentials
+      // headers: hdrs,
+      // integrity
+      // keepalive
+      mode: 'cors',
+      redirect: 'follow',
+      // referrer
+      signal: signal
+    }
+    if( hdrs !== null ) init.headers = hdrs   //error if init.headers === null
+
+    let _start = performance.now()
+    let response = null
+    let contentLength = 0
+    
+    async function readData () {        
+      // https://javascript.info/fetch-progress
+      let progressNum = 0
+      let receivedLength = 0
+      let chunks = []
+      const reader = response.body.getReader()
+      while(true) { // infinite loop while the body is downloading
+        const { done, value } = await reader.read()     // done is true for the last chunk; value is Uint8Array of the chunk bytes
+        if( done ) break
+        chunks.push(value);
+        receivedLength += value.length    // bytes
+        if( callback )
+          callback( 'progress', { num:++progressNum, ms:(performance.now() -_start), current:receivedLength, total:contentLength } )
+      }
+      let chunksAll = new Uint8Array(receivedLength); // concatenate chunks into single Uint8Array
+      let position = 0;
+      for(let chunk of chunks) {
+        chunksAll.set(chunk, position); // (4.2)
+        position += chunk.length;
+      }
+      let result = new TextDecoder("utf-8").decode(chunksAll);
+      response.dataLength = receivedLength    // simplify data handling
+      return result
+    }
+
+    fetch( url, init )  // connect
+    .then( resp => {    // handle error or data
+      response = resp
+      if( debug ){
+        console.log( 'Fetch Response:\n', resp )
+        console.log( `Fetch Response Headers:` )
+        let idx = 0
+        resp.headers.forEach(( value, key ) => {
+          console.log( '#'+(++idx), key, value )
+        })
+      }
+
+      if( !resp.ok )
+        return null
+      // return resp.text()   //default without progress info
+      if( resp.headers.has('Content-Length') )
+        contentLength = Number( resp.headers.get('Content-Length') )
+      return readData()
+    })
+    .then( data => {    // return response to caller
+      if( !response.ok ) {
+        console.log( 'Fetch HTTP error:', response.status, response.statusText );
+        if( callback )
+          callback( 'error', response, debug )
+      }
+      else{
+        response.data = data
+        if( callback )
+          callback( 'response', response, debug )
+      }
+      if( debug )
+        console.log( 'Fetch duration:', ( performance.now() -_start) +'ms' )
+    })
+    .catch( error => {
+      console.log( 'Fetch error caught:', error, response)
+      if( callback )
+        callback( 'error', error, debug )
+    })  
   },
   url:{
     // references:
@@ -117,23 +231,19 @@ var q = {
       if( uobj.path && uobj.path[0] !== '/') url += '/'
       url += test('path', '', '')
 
-      if(qList === null)
-        url += test('query',    '?', '')
-      else 
+      let str = ''
+      if(qList === null){
+        str = q.query.join( uobj.query )
+      }else 
       if( qList.length !== 0 ) {
-        let str = ''
-        qList.forEach( ( val, idx ) => {
-          if( val.trim() === '' ) return
-          if( str !== '') str += '&'
-          str += val 
-        })
-        if( str !== ''){
-          if( str[0] !== '?' ) url += '?'
-          url += str
-        }
+        str = q.query.join( qList )
       }
-      url += test('fragment',     '#', '')
+      if( str !== ''){
+        if( str[0] !== '?' ) url += '?'
+        url += str
+      }
 
+      url += test('fragment',     '#', '')
       return url
     },
     obj: function(){
@@ -177,15 +287,28 @@ var q = {
     }
   },
   query: {
-    join( list ){     // return array items concatenated with &
+    join( list ){     // list may be a string; return encodeURI( list )
       if( list === undefined || list.length === 0 )
         return ''
-      return list.join( '&' )
+
+      if( typeof list === 'string')
+        return encodeURI( list )
+
+      let str = encodeURI( list.join( '&' ))
+      return str
     },
     parse: function( str ){   // return array of query parameters
       if( str === undefined || str === '')
         return []
-      return str.split('&')
+      
+      let result = []
+      let searchParams = new URLSearchParams( str )
+      searchParams.sort()
+      searchParams.forEach( (value, key) => {
+        result.push(key+'='+value);
+      })
+  
+      return result
     }
   }
 }

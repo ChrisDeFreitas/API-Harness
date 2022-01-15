@@ -36,25 +36,36 @@ const EditBox = React.forwardRef((props, ref) => {
       props.onChange( colname, event.target.value, active, multi )
     } 
   }
-  function keyDown( event ){
-    if( event.altKey === true ){
-      if(event.key === 'e' && props.canDisable === true){
-        toggleEvent( event )
-        event.preventDefault()
-      } else
-      if(event.key === 'r'){
-        resetEvent( event )
-        event.preventDefault()
-      } else
-      if(event.key === 'd'){
-        clearEvent( event )
-        event.preventDefault()
-      } else
-      if(event.key === 'n' && props.multiHandler){
-        props.multiHandler( event )
-        event.preventDefault()
-      } 
+  function clickEvent( event ){
+    if (event.detail === 3) {
+      let ctrl = event.target
+      ctrl.select()
+      event.preventDefault()
     }
+  }
+  function keyDown( event ){
+    if( event.altKey !== true ) return
+
+    // if(event.key === 'e'){   // todo: exec handler in props for shortcut key to work
+    //   execEvent( event )
+    //   event.preventDefault()
+    // } else
+    if(event.key === 't' && props.canDisable === true){
+      toggleEvent( event )
+      event.preventDefault()
+    } else
+    if(event.key === 'r'){
+      resetEvent( event )
+      event.preventDefault()
+    } else
+    if(event.key === 'c'){
+      clearEvent( event )
+      event.preventDefault()
+    } else
+    if(event.key === 'n' && props.multiHandler){
+      props.multiHandler( event )
+      event.preventDefault()
+    } 
   }
 
   // button handlers  
@@ -78,7 +89,7 @@ const EditBox = React.forwardRef((props, ref) => {
 
   let activeIcon = ( active === 'active' ?'check_circle_outline' :'radio_button_unchecked' )
   let btnDisable = ( props.canDisable === true
-    ? <span className="material-icons btnIcon" title='Enable/Disable (Alt+E)' onClick={toggleEvent} >{activeIcon}</span>
+    ? <span className="material-icons btnIcon" title='Toggle Enable/Disable (Alt+T)' onClick={toggleEvent} >{activeIcon}</span>
     : <span className="material-icons btnIconEnabled" title='Always Enabled' >check_circle_outline</span>)
   let btnMulti = ( multi === '' 
     ?null
@@ -96,11 +107,12 @@ const EditBox = React.forwardRef((props, ref) => {
       data-multi={multi}
       disabled = {(active !== 'active' ?true :false)}
       id = {'Edit' +colname +multi}
+      // maxlength={props.width} 
       rows={props.rows} 
       title={props.title} 
       value={val} 
-      // maxlength={props.width} 
       onChange={changeEvent}
+      onClick={clickEvent}
       onKeyDown={keyDown}
     />
   }
@@ -114,6 +126,7 @@ const EditBox = React.forwardRef((props, ref) => {
       value={val} 
       // maxlength={props.width} 
       onChange={changeEvent}
+      onClick={clickEvent}
       onKeyDown={keyDown}
     />
   }
@@ -123,7 +136,7 @@ const EditBox = React.forwardRef((props, ref) => {
       <span className='heading' >{props.heading}</span> 
       { ctrl }
       { btnDisable }
-      <span onClick={clearEvent} className="material-icons btnIcon" title='Delete contents  (Alt+D)'>delete</span> 
+      <span onClick={clearEvent} className="material-icons btnIcon" title='Clear contents  (Alt+C)'>delete</span> 
       <span onClick={resetEvent} className="material-icons btnIcon" title='Reload initial value  (Alt+R)'>replay</span> 
       { btnMulti }
     </span>
