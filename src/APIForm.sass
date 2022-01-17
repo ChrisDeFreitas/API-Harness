@@ -21,10 +21,20 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
   border-radius: 5px
   padding: 0 
   text-shadow: 1px 1px 1px #fff6
+  
 @mixin btnDisabledStyle
   background-color: #fff9
   color: #0009
   cursor: default
+
+@mixin iconDisabledStyle
+  cursor: default
+  color: #fff2
+  text-shadow: none
+  top: 5px
+  &:hover
+    background-color: transparent
+    
 
 .appHeader
   background: $frmBGColor
@@ -75,7 +85,7 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
   filter: drop-shadow(1px 1px 0px #fff) opacity(0.6) // contrast(0.7)
   height: 50px
   position: absolute
-  right: 28px
+  right: 14px
   top: 70px
   opacity: 0
   width: 50px
@@ -88,9 +98,9 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
     0%
       transform: rotateZ(-46deg)
     25%
-      transform: rotateZ(-90deg)
+      transform: rotateZ(-68deg)
     75%
-      transform: rotateZ(0deg)
+      transform: rotateZ(5deg)
     100%
       transform: rotateZ(-46deg)
 .pngIconSpin
@@ -121,12 +131,11 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
       text-shadow: 1px 1px #000
 
 
-.frmButtonbar,
 .resultBar
-  background-color: color.scale( $frmBGColor, $lightness: -30% )
+  background-color: color.scale( $frmBGColor, $lightness: -30% ) //, $saturation: -70% )
   border-radius: 5px
   margin: 0 auto 5px auto
-  padding: 2px 0 
+  padding: 2px 8px 
   text-align: center
   width: 95%
   button
@@ -143,10 +152,6 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
       @include btnDisabledStyle
     &:hover
       @include hoverStyle
-.frmButtonbar
-  button
-    margin: 0 15px 0 0
-    font-size: 1em
 
 
 .editBox
@@ -155,6 +160,7 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
   overflow: hidden
   padding: 5px 0
   text-align: left
+  width: 100%
   .heading
     color: #000
     display: inline-table
@@ -197,16 +203,53 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
       background-color: color.scale( LimeGreen, $lightness: 50% )
 
 .editBox_url 
+  // position: relative
   .heading
     color: #000
     font-size: 1em
     font-weight: bold
     width: 3em
-  .btnIconEnabled,
-  .btnIcon
-    font-size: 2em
-  .btnIconEnabled
-    // visibility: hidden
+  textarea
+    width: 32em
+  .btnIconPnl
+    background-color: color.scale( $frmBGColor, $lightness: -30% )
+    border-radius: 5px
+    display: block
+    font-size: 1.2em
+    margin: 5px auto 0
+    padding: 0 0 5px 0 
+    text-align: left
+    width: 75%
+    button
+      @include btnStyle
+      font-size: 0.7em
+      margin: 0 5px 0 0
+      width: 5em
+      &.selected
+        color: #fff
+        text-shadow: 1px 1px #000a
+        background-color: $btnBgColorSelected
+      &:disabled,
+      &:disabled:hover
+        @include btnDisabledStyle
+      &:hover
+        @include hoverStyle
+    .btnIconEnabled   // Enabled icon
+      display: none
+    .cachePnl
+      cursor: default
+      font-size: 0.9em
+      padding: 0 2em 0 0.5em
+      .cacheLabel
+        border-radius: 5px 
+        color: #fff9
+        cursor: pointer
+        font-size: 0.7em
+        padding: 3px 2px 2px 2px
+        &:hover
+          @include hoverStyle
+      .btnIconDisabled
+        @include iconDisabledStyle
 
 .logText,
 .resultText,

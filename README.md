@@ -1,15 +1,8 @@
 # API Harness
 
-Note: 
 - This repo is a backup and personal knowledge base. Use at your own discretion.
-- not meant for public consumption, still testing -- expect bugs
 - review ToDo list to see whats waiting to be fixed/implemented
 - built for FireFox
-
-Currently: 
-- GET requests working via Fetch
-- testing usability and for side effects before more development
-- XML and JSON components may go away if they don't demonstrate higher value than text output (because of poor performance with large datasets)  
 
 ## Goals 
 - create a general purpose tool to test API calls
@@ -19,28 +12,22 @@ Currently:
 - cache API calls and results long term in SQLite database
 
 ## Thanks To
-
 - Background image, NBE_032-2.JPG, from unknown source (found in personal image archive)
 - Built with the [React UI library](https://reactjs.org/)
 - Code hosted on [Github](https://github.com/ChrisDeFreitas/guitarjoe)
-- [Flickr API](https://www.flickr.com/services/api/)
 - Icon library by [Google Fonts](https://fonts.google.com/icons)
 - [react-json-view](https://www.npmjs.com/package/react-json-view) Component
 - [react-xml-viewe](https://www.npmjs.com/package/react-xml-viewer) Component
 - [PNG API icon](https://www.flaticon.com/free-icon/api_3234207) from [flaticon.com](flaticon.com)  
 - [PNG satelite dish](https://www.flaticon.com/premium-icon/satelite_4186682?related_id=4186682) from [flaticon.com](flaticon.com)  
+- [Sass](https://sass-lang.com/) CSS extension language
 - Technical references from [Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web)
 
 ## ToDo
-- resolve CORS error with: https://api.opentopodata.org/v1/test-dataset?locations=56,123
+- implement new logic for EditBox disable functionality. Disabled params need to exist in local and global caches. Currently, disabled status only stored in EditBox, so lost on React redraw--restored via Reload icon via APIForm.uobj.
 - allow panels to remain in memory (instead of redrawing)
-- test for stability, performance, and possible functionality enhancements before digging into caching
 - allow form width to be expanded by user dragging
-- fix display on ipad/landscape; background repeats, should stretch
 - allow request type to be manually set; currently only GET used
-- create url caching logic; currently cache stores initial url only  
--- cache requests locally  
--- build form to access cache data  
 - build server caching backend
 - look into improving performance for large datasets  
 -- JSON view = JSON.stringify( JSON.parse( jsonstring ), null, 3)  
@@ -49,6 +36,17 @@ Currently:
 --- xml/json view would be simple text view with indents
 
 ## Updates
+
+#### 20220116
+- added cache.js for global url caching--not fully implemented. Functionality is basic but sufficient for now.
+- resolved issue caching url params in APIForm.jsx
+- refactored URL UI
+- refactored display of icon buttons in EditBox
+- refactored button and button icons for URL
+- hid 'enable' button for URL
+- added 'open in tab' button to URL
+- added caching buttons to URL
+- removed unused files
 
 #### 20220114
 - implemented Fecth API instead of XMLHttpRequest because of greater control

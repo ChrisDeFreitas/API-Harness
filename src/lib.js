@@ -19,25 +19,8 @@
 */
 
 var q = {
-  bytesToStr:function(bytes){
-		if(bytes < 1024) return bytes+' bytes'
-		if(bytes < (1024 *1024)) return (Math.round(bytes /1024*100) /100)+' KB'
-		if(bytes < (1024 *1024 *1024)) return (Math.round(bytes /1024/1024*100) /100)+' MB'
-		return (Math.round(bytes /1024/1024/1024 *100) /100)+' GB'
-	},
-  insertInList: function( oldList, pos, str ){ //duplicate list and insert new item at pos
-    let list = oldList.slice()
-    if( pos > list.length ) pos = list.length
-    list.splice( pos, 0, str)
-    return list
-  },
-  timeFormat: function(ms, format) {
-		if(format==='ms') return ms+'ms'
-		if(format==='s') return (Math.round(ms/1000*10)/10)+'sec'			//99.9sec
-		if(format==='m') return (Math.round(ms/1000/60*10)/10)+'min'		//99.9min
-		if(format==='h') return (Math.round(ms/1000/60/60*100)/100)+'hrs'	//99.99hrs
-		if(format==='d') return (Math.round(ms/1000/60/60/24*100)/100)+'days'	//99.99days
-	},
+    
+  //
   ajax(
     url = '', 
     callback = null,       // callback( type=error/response/progress, obj=string/xhr/progressevent ) 
@@ -210,10 +193,16 @@ var q = {
         callback( 'error', error, debug )
     })  
   },
+  
+  //
   url:{
     // references:
     // https://en.wikipedia.org/wiki/URL
     // https://developer.mozilla.org/en-US/docs/Web/API/URL
+    host: function( str ){
+      const url = new URL( str )
+      return url.hostname
+    },
     join: function( uobj, qList = null ){    // return a valid url 
       function test( key, pre, post ){
         if( uobj[key] !== undefined && uobj[key] !== '')
@@ -310,7 +299,28 @@ var q = {
   
       return result
     }
-  }
+  },
+
+  // utility functions
+  bytesToStr:function(bytes){
+		if(bytes < 1024) return bytes+' bytes'
+		if(bytes < (1024 *1024)) return (Math.round(bytes /1024*100) /100)+' KB'
+		if(bytes < (1024 *1024 *1024)) return (Math.round(bytes /1024/1024*100) /100)+' MB'
+		return (Math.round(bytes /1024/1024/1024 *100) /100)+' GB'
+	},
+  insertInList: function( oldList, pos, str ){ //duplicate list and insert new item at pos
+    let list = oldList.slice()
+    if( pos > list.length ) pos = list.length
+    list.splice( pos, 0, str)
+    return list
+  },
+  timeFormat: function(ms, format = 'ms' ) {
+		if(format==='ms') return ms+'ms'
+		if(format==='s') return (Math.round(ms/1000*10)/10)+'sec'			//99.9sec
+		if(format==='m') return (Math.round(ms/1000/60*10)/10)+'min'		//99.9min
+		if(format==='h') return (Math.round(ms/1000/60/60*100)/100)+'hrs'	//99.99hrs
+		if(format==='d') return (Math.round(ms/1000/60/60/24*100)/100)+'days'	//99.99days
+	},
 }
 
 export default q  

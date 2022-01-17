@@ -10,8 +10,10 @@ import XMLViewer from 'react-xml-viewer'
 
 import './APIForm.sass'
 import EditBox from'./EditBox'
-import q from'./lib.js'
 import png from './resources/satelite-outline.png'
+
+import q from'./lib.js'
+import cache from'./cache.js'
 
 // manually incrementing keyid forces react to repaint
 let urlKeyId = 0  // inc on url param change
@@ -22,33 +24,31 @@ let qryKeyId = 0  // inc on new query line
 class APIForm extends React.Component{
 
   constructor (props) {
-    // console.log('APIForm.constructor()', props)
-    super(props)
 
-    // this.cache = q.url.parse('https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=522fdc88c5fec5c9f9598045831f4a42&tags=beach&format=json&nojsoncallback=1')
-    this.cache = q.url.parse('https://api.publicapis.org/entries')
-    // this.cache = q.url.parse('https://api.publicapis.org/entries?description=health')
-    // this.cache = q.url.parse('https://www.songsterr.com/a/ra/songs.json?pattern=Marley')
-    // this.cache = q.url.parse('https://www.songsterr.com/a/ra/songs.xml?pattern=Marley')
-    // this.cache = q.url.parse('https://api.opentopodata.org/v1/test-dataset?locations=56,123')
-    // this.cache = q.url.parse('https://api.open-elevation.com/api/v1/lookup?locations=10,10|20,20|41.161758,-8.583933')
-    // this.cache = q.url.parse('https://sportsdatabase.com/NBA/query.html?sdql=A%28points%29%40points%3E100+and+team&submit=++S+D+Q+L+%21++')
-    // this.cache = q.url.parse('https://jsonplaceholder.typicode.com/posts/1')
-    this.cache.header = ['']
-    this.cache.qList = q.query.parse( this.cache.query )
-    if( this.cache.header.length === 0) this.cache.header.push('')
-    if( this.cache.qList.length === 0) this.cache.qList.push('')
+    super(props)
+    console.log('APIForm.constructor()', props)
+    console.log( props.cacheitm )
+    
+    //this.cacheitm = props.cacheitm
+
+    this.uobj = q.url.parse(  props.cacheitm.url  )   // local cache
+    this.uobj.headers = props.cacheitm.headers.slice()
+  //  this.uobj.disabled = JSON.parse(JSON.stringify( props.cacheitm.disabled ))
+    this.uobj.qList = q.query.parse( this.uobj.query )
+    if( this.uobj.headers.length === 0) this.uobj.headers.push('')
+    if( this.uobj.qList.length === 0) this.uobj.qList.push('')
 
     this.state  = {
+      cacheitm: props.cacheitm,
       mode: 'Settings',   //one of: Settings, Log, Result, Exec
-      ...this.cache,
-      header: [ ...this.cache.header ],
-      qList: [ ...this.cache.qList ],
+      ...this.uobj,
+      headers: [ ...this.uobj.headers ],
+      qList: [ ...this.uobj.qList ],
       log:'',
       resultData:'',
       resultType:'Text'   //one of: Text, JSON, XML
     }
-    
+      
     this.autoFocus = ''
     this.autoFocusRef = React.createRef()
     this.pngRef = React.createRef()
@@ -70,6 +70,13 @@ class APIForm extends React.Component{
     this.multiHandler = this.multiHandler.bind( this )
 
     this.setResultType = this.setResultType.bind( this )
+    this.tabOpenEvent = this.tabOpenEvent.bind( this )
+  
+    this.cachePrior = this.cachePrior.bind( this )
+    this.cacheNext = this.cacheNext.bind( this )
+    this.cacheUpdate = this.cacheUpdate.bind( this )
+    this.cacheLoad = this.cacheLoad.bind( this )
+    
   }
 
   // shouldComponentUpdate(nextProps, nextState){}
@@ -90,9 +97,9 @@ class APIForm extends React.Component{
     
     this.controller = new AbortController()
     let str = this.state.url
-    if( this.state.header.length > 0
-    &&( !(this.state.header.length === 1 && this.state.header[0].trim() === '')))
-      str += '\nHeaders:\n' +this.state.header.join( '\n' )
+    if( this.state.headers.length > 0
+    &&( !(this.state.headers.length === 1 && this.state.headers[0].trim() === '')))
+      str += '\nHeaders:\n' +this.state.headers.join( '\n' )
 
     this.logWrite( 'Exec lib.fetch() with:', str, true )
     this.setState({ 
@@ -106,7 +113,7 @@ class APIForm extends React.Component{
       this.state.url, 
       this.controller.signal,
       this.fetchCallback, 
-      this.state.header,
+      this.state.headers,
       true 
     )
   }
@@ -213,28 +220,76 @@ class APIForm extends React.Component{
     })
   }
 
-  //
+  cacheToState( cacheitm ){
+    urlKeyId++  // inc on url param change
+    hdKeyId++   // inc on new header
+    colKeyId++  // inc on column change
+    qryKeyId++  // inc on new query line
+
+    this.uobj = q.url.parse(  cacheitm.url  )
+    this.uobj.headers = cacheitm.headers.slice()
+    // this.uobj.disabled = JSON.parse(JSON.stringify( cacheitm.disabled ))
+    this.uobj.qList = q.query.parse( this.uobj.query )
+    if( this.uobj.headers.length === 0) this.uobj.headers.push('')
+    if( this.uobj.qList.length === 0) this.uobj.qList.push('')
+
+    this.setState({ 
+      mode: 'Settings',   //one of: Settings, Log, Result, Exec
+      cacheitm: cacheitm,
+      ...this.uobj,
+      headers: [ ...this.uobj.headers ],
+      qList: [ ...this.uobj.qList ],
+      log:'',
+      resultData:'',
+      resultType:'Text'   //one of: Text, JSON, XML
+    })
+  }
+  cachePrior(event){ 
+    let itm = cache.prior( this.state.cacheitm )
+    if( itm === null ) itm = cache.last()
+
+    this.cacheToState( itm )
+  }
+  cacheNext(event){ 
+    let itm = cache.next( this.state.cacheitm )
+    if( itm === null ) itm = cache.first()
+
+    this.cacheToState( itm )
+  }
+  cacheUpdate(event){
+    let itm = cache.update( 
+      this.state.cacheitm,
+      this.state.url,
+      this.state.headers
+    )
+    this.setState({ cacheitm:itm })
+  }
+  cacheLoad(event){
+    let itm = JSON.parse(JSON.stringify( this.state.cacheitm ))
+    this.cacheToState( itm )
+  }
+
   ctrlChange( colname, val, active, multi ){
     if(colname === undefined){
       throw new Error( 'APIForm.ctrlChange() error, colname === undefined.' )
     }
     
-    if(colname === 'url'){
-      let uobj = q.url.parse( val )
-      let qList = q.query.parse( uobj.query )
-      if( qList.length === 0) qList.push('')
+    if(colname === 'url'){    // reset this.uobj (local cache)
+      this.uobj = q.url.parse( val )
+      this.qList = q.query.parse( this.uobj.query )
+      if( this.qList.length === 0) this.qList.push('')
 
       qryKeyId++
       colKeyId++
       this.setState({
-        ...uobj,
-        qList:qList
+        ...this.uobj,
+        qList:this.qList
       })
     } else
     if(colname === 'header'){
-      let list = [ ...this.state.header ]
+      let list = [ ...this.state.headers ]
       list[ multi -1 ] = ( active === 'active' ?val :'' )
-      this.setState({ header:list })
+      this.setState({ headers:list })
     } else
     if(colname === 'query'){
       let list = [ ...this.state.qList ]
@@ -247,7 +302,7 @@ class APIForm extends React.Component{
         url:url 
       })
     } else
-    if( this.cache[colname] !== undefined ){
+    if( this.uobj[colname] !== undefined ){
       // make new url
       let state = { ...this.state }
       state[colname] = ( active === 'active' ?val :'' )
@@ -268,18 +323,18 @@ class APIForm extends React.Component{
 
     if(colname === 'header'){
       let idx = multi -1
-      if(idx >= this.cache.header.length)
+      if(idx >= this.uobj.headers.length)
         return ''
-      return this.cache.header[ idx ]
+      return this.uobj.headers[ idx ]
     } else
     if(colname === 'query'){
       let idx = multi -1
-      if(idx >= this.cache.qList.length)
+      if(idx >= this.uobj.qList.length)
         return ''
-      return this.cache.qList[ idx ]
+      return this.uobj.qList[ idx ]
     } else
-    if( this.cache[colname] !== undefined ){
-      return this.cache[colname]
+    if( this.uobj[colname] !== undefined ){
+      return this.uobj[colname]
     }
 
     return null
@@ -297,14 +352,14 @@ class APIForm extends React.Component{
     // console.log( 'multi', colname, multi )
     
     if( colname === 'header' ){
-      this.cache.header = q.insertInList( this.cache.header, multi, '' )  //mirror in cache
-      let list = q.insertInList( this.state.header, multi, '' )
+      this.uobj.headers = q.insertInList( this.uobj.headers, multi, '' )  //mirror in cache
+      let list = q.insertInList( this.state.headers, multi, '' )
       this.autoFocus = 'Editheader' +( multi +1)
       hdKeyId++
-      this.setState({ header:list })
+      this.setState({ headers:list })
     } else
     if( colname === 'query' ){
-      this.cache.qList = q.insertInList( this.cache.qList, multi, '' )  //mirror in cache
+      this.uobj.qList = q.insertInList( this.uobj.qList, multi, '' )  //mirror in cache
       let qList = q.insertInList( this.state.qList, multi, '' )
       this.autoFocus = 'Editquery' +( multi +1)
       qryKeyId++
@@ -318,10 +373,15 @@ class APIForm extends React.Component{
     if( !event.target.dataset.type ) return
     this.setState({ resultType:event.target.dataset.type })
   }
+  tabOpenEvent( event ){
+    window.open( this.state.url, '_blank' )
+  }
 
   // create jsx
   getHeader(){
     let state = this.state
+    let cacheitm = state.cacheitm
+
     return (
       <>
         <div className='frmPanel frmHeader'>
@@ -333,12 +393,21 @@ class APIForm extends React.Component{
             value={state.url} 
             onChange={this.ctrlChange}
             getCacheVal={ this.getCacheVal }
-          />
-          <img src={png} ref={ this.pngRef } className='pngIcon' alt='' ></img>
-          <div className='frmButtonbar'>
+          >
+            <span className='cachePnl' title={`Viewing: ${cacheitm.name}`}>
+              <span onClick={this.cachePrior} className="material-icons btnIcon" title='Load prior Cache item'>arrow_left</span> 
+              <span onClick={this.cacheLoad} className='cacheLabel' title='Reload from Cache'>Cache #{cacheitm.id}</span>
+              <span onClick={this.cacheNext} className="material-icons btnIcon" title='Load next Cache item'>arrow_right</span> 
+              <span className="material-icons btnIcon btnIconDisabled" title='Create new Cache item'>add_to_queue</span> 
+              <span onClick={this.cacheUpdate} className="material-icons btnIcon" title='Update Cache item'>browser_updated</span> 
+              <span className="material-icons btnIcon btnIconDisabled" title='Delete Cache item'>remove_from_queue</span> 
+            </span>
             <button disabled={ this.state.mode === 'Exec' }onClick={this.fetch} >Exec</button>
             <button disabled={ this.state.mode !== 'Exec' } onClick={this.fetchCancel} >Cancel</button> 
-          </div>
+            &nbsp; &nbsp;
+            <span onClick={this.tabOpenEvent} className="material-icons btnIcon" title='Open in browser'>open_in_browser</span> 
+          </EditBox>
+          <img src={png} ref={ this.pngRef } className='pngIcon' alt='' ></img>
         </div>
       </>      
     )
@@ -367,7 +436,7 @@ class APIForm extends React.Component{
     // console.log('keyid', urlKeyId, hdKeyId, qryKeyId, this.state )
 
     let hControls = []
-    this.state.header.forEach( ( str, idx ) => {
+    this.state.headers.forEach( ( str, idx ) => {
       let multi = idx+1,
         id = 'Editheader' + multi
       hControls.push(
