@@ -1,6 +1,6 @@
 //
   APIForm.sass
-  - by Chris DeFreitas, ChrisDeFreitas777@gmail.com
+  - by Chris DeFreitas
 
 
 @use 'sass:color'
@@ -34,7 +34,66 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
   top: 5px
   &:hover
     background-color: transparent
-    
+  
+@mixin btnBar
+  background-color: color.scale( $frmBGColor, $lightness: -30% )
+  border-radius: 5px
+  display: block
+  font-size: 1.2em
+  margin: 5px auto 0
+  padding: 0 2em 5px 0 
+  text-align: right
+  width: 25em
+  button
+    @include btnStyle
+    font-size: 0.7em
+    margin: 0 5px 0 0
+    width: 5em
+    &.selected
+      color: #fff
+      text-shadow: 1px 1px #000a
+      background-color: $btnBgColorSelected
+    &:disabled,
+    &:disabled:hover
+      @include btnDisabledStyle
+    &:hover
+      @include hoverStyle
+
+@mixin cacheBarStyle
+  cursor: default
+  font-size: 0.9em
+  padding: 0 5em 0 0
+  .queryLabel
+    border-radius: 3px
+    color: #fff9
+    cursor: pointer
+    font-size: 1em
+    margin: 0
+    padding: 2px //2px 2px 2px
+    position: relative
+    top: -6px
+    &:hover
+      @include hoverStyle
+  .btnCacheArrow
+    position: relative
+    top: 3px
+  .btnIconDisabled
+    @include iconDisabledStyle
+
+.btnIcon
+  color: #0003
+  // cursor: default
+  cursor: pointer
+  font-size: 1.2em
+  padding: 2px
+  position: relative
+  text-shadow: 1px 1px #fff6
+  top: 4px
+  &:hover
+    @include hoverStyle
+    border-radius: 10px
+  &:active
+    background-color: color.scale( LimeGreen, $lightness: 50% )
 
 .appHeader
   background: $frmBGColor
@@ -58,8 +117,44 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
   position: relative
   top: -10vh
   margin: 0 auto
-  height: auto
+  height: fit-content
+  // max-height: 70vh
   width: 45em
+
+.modeBar
+  padding-left: 1em
+  text-align: left
+  span
+    border-radius: 5px
+    color: #0007
+    cursor: pointer
+    display: inline-table
+    font-size: 1em
+    font-weight: bold
+    margin: 0 0 5px 0
+    padding: 2px 0 2px 0
+    text-align: center
+    width: 4.5em
+    &:hover
+      @include hoverStyle
+    &.selected
+      background-color: #144a696c
+      border: 1px inset #aaa
+      color: #eee
+      cursor: default
+      text-shadow: 1px 1px #000
+  label   // apiForm.state.name || query.name 
+    color: #000
+    display: inline-block
+    font-size: 0.9em
+    // font-weight: bold
+    overflow: clip
+    padding: 0 1em 0 0
+    text-align: left
+    text-overflow: ellipsis
+    white-space: nowrap
+    width: 15em
+    max-width: 15em
 
 .frmPanel
   background-color: color.scale( $frmBGColor, $lightness: 50% )
@@ -77,88 +172,40 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
     border-radius: 0 0 5px 5px 
     border-bottom: 1px outset #000
     border-top: 0
-    height: 50vh
+    height: 466px
     overflow-y: auto
     padding: 0 0 0.5em
+  &.frmCache
+    border: 1px outset #000
+    border-radius: 5px
+    height: 614px
+    .editBox_name
+      margin-top: 2em
+  &.frmEdit
+    height: 430px
 
-.pngIcon
-  filter: drop-shadow(1px 1px 0px #fff) opacity(0.6) // contrast(0.7)
-  height: 50px
-  position: absolute
-  right: 14px
-  top: 70px
-  opacity: 0
-  width: 50px
-  backface-visibility: visible
-  transform: rotateZ(-46deg)
-  transform-origin: 0px 48px
-  transform-style: preserve-3d
-  transition: opacity 300ms
-@keyframes spin 
-    0%
-      transform: rotateZ(-46deg)
-    25%
-      transform: rotateZ(-68deg)
-    75%
-      transform: rotateZ(5deg)
-    100%
-      transform: rotateZ(-46deg)
-.pngIconSpin
-  animation: spin 4s infinite linear
-  opacity: 1
-
-.modebar
-  padding-left: 2em
-  text-align: left
-  span
-    border-radius: 10px
-    color: #0007
-    cursor: pointer
-    display: inline-table
-    font-size: 1em
-    font-weight: bold
-    margin: 0 0 5px 0
-    padding: 2px 0 2px 0
-    text-align: center
-    width: 6em
-    &:hover
-      @include hoverStyle
-    &.selected
-      background-color: #0785
-      border: 1px inset #aaa6
-      color: #eee
-      cursor: default
-      text-shadow: 1px 1px #000
-
+.queryBar
+  @include btnBar
+  text-align: center
+  width: 80%
+  .cacheBar
+    @include cacheBarStyle
+  button
+    position: relative
+    top: -6px
+  .btnIcon
+    font-size: 2em
 
 .resultBar
-  background-color: color.scale( $frmBGColor, $lightness: -30% ) //, $saturation: -70% )
-  border-radius: 5px
-  margin: 0 auto 5px auto
+  @include btnBar
   padding: 2px 8px 
   text-align: center
-  width: 95%
-  button
-    @include btnStyle
-    font-size: 0.7em
-    margin: 0 5px 0 0
-    width: 5em
-    &.selected
-      color: #fff
-      text-shadow: 1px 1px #000a
-      background-color: $btnBgColorSelected
-    &:disabled,
-    &:disabled:hover
-      @include btnDisabledStyle
-    &:hover
-      @include hoverStyle
-
 
 .editBox
   display: table
   margin: 0
   overflow: hidden
-  padding: 5px 0
+  padding: 3px 0
   text-align: left
   width: 100%
   .heading
@@ -177,79 +224,77 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
     border-radius: 5px
     color: #000
     font-family: sans-serif
-    font-size: 1em
-    padding: 5px
-    width: 30em
+    font-size: 0.8em
+    padding: 3px
+    width: 39em
+  input:read-only,
+  textarea:read-only
+    border: 1px inset silver
+    background-color: #0002
+    color: #000
+    font-weight: 100
   input:disabled,
   textarea:disabled
     // background-color: red
     color: #777
     text-shadow: 1px 1px 1px #fff
-  .btnIconEnabled,
-  .btnIcon
-    color: #0003
-    cursor: default
-    font-size: 1.2em
-    padding: 2px
-    position: relative
-    text-shadow: 1px 1px #fff6
-    top: 4px
-  .btnIcon
-    cursor: pointer
-    &:hover
-      @include hoverStyle
-      border-radius: 10px
-    &:active
-      background-color: color.scale( LimeGreen, $lightness: 50% )
 
-.editBox_url 
-  // position: relative
+.frmHeader .editBox
   .heading
     color: #000
     font-size: 1em
     font-weight: bold
-    width: 3em
+    padding-left: 2em
+    width: 4em
+  input,
   textarea
-    width: 32em
-  .btnIconPnl
-    background-color: color.scale( $frmBGColor, $lightness: -30% )
-    border-radius: 5px
-    display: block
-    font-size: 1.2em
-    margin: 5px auto 0
-    padding: 0 0 5px 0 
-    text-align: left
-    width: 75%
-    button
-      @include btnStyle
-      font-size: 0.7em
-      margin: 0 5px 0 0
-      width: 5em
-      &.selected
-        color: #fff
-        text-shadow: 1px 1px #000a
-        background-color: $btnBgColorSelected
-      &:disabled,
-      &:disabled:hover
-        @include btnDisabledStyle
-      &:hover
-        @include hoverStyle
-    .btnIconEnabled   // Enabled icon
-      display: none
-    .cachePnl
-      cursor: default
-      font-size: 0.9em
-      padding: 0 2em 0 0.5em
-      .cacheLabel
-        border-radius: 5px 
-        color: #fff9
-        cursor: pointer
-        font-size: 0.7em
-        padding: 3px 2px 2px 2px
-        &:hover
-          @include hoverStyle
-      .btnIconDisabled
-        @include iconDisabledStyle
+    width: 40em
+.frmHeader .editBox_url .btnIconPnl
+  @include btnBar
+  .cacheBar
+    @include cacheBarStyle
+    padding: 0 3em 0 0
+    position: relative
+    top: -2px
+    .queryLabel
+      font-size: 0.8em
+      top: 0px
+    .btnCacheArrow
+      position: relative
+      top: 7px
+      font-size: 1.6em
+
+.btnFetchCancel
+  display: inline
+  position: absolute
+  right: 30px
+  top: 140px
+
+.pngIcon      //format API call activity animation
+  filter: drop-shadow(1px 1px 0px #fff) opacity(0.6) // contrast(0.7)
+  height: 30px
+  position: absolute
+  right: 28px
+  top: 110px
+  opacity: 0
+  width: 30px
+  backface-visibility: visible
+  transform: rotateZ(-46deg)
+  transform-origin: 0px 30px
+  transform-style: preserve-3d
+  transition: opacity 300ms
+@keyframes spin 
+    0%
+      transform: rotateZ(-46deg)
+    25%
+      transform: rotateZ(-90deg)
+    75%
+      transform: rotateZ(5deg)
+    100%
+      transform: rotateZ(-46deg)
+.pngIconSpin
+  animation: spin 4s infinite linear
+  opacity: 1
 
 .logText,
 .resultText,
@@ -266,7 +311,8 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
 .resultText,
 .resultJSON,
 .resultXML
-  height: 83%
+  height: 85%
+  margin-top: 1em
 .logText
-  height: 88%
+  height: 94%
   line-height: 1.6em

@@ -1,7 +1,25 @@
 /*
 APIForm.jsx
-  - by Chris DeFreitas, ChrisDeFreitas777@gmail.com
+  - by Chris DeFreitas
 
+  Goals:
+  - make api calls
+  - analyze results and erros
+  - break apart URL parameters for simple editing
+  -- specify port, protocol, host, path, hash
+  -- add/edit headers
+  -- add/edit query params
+  - cache queries
+  - store notes
+  - not suported url.username, url.password
+
+  local cache allows reload function in ui
+  - this.cache.byID( this.cacheitm.id )
+  - this.uobj
+  
+  working data stores current values of global cache item:
+  - this.cacheitm
+  - this.state...
 */
 
 import React from 'react'
@@ -12,41 +30,45 @@ import './APIForm.sass'
 import EditBox from'./EditBox'
 import png from './resources/satelite-outline.png'
 
-import q from'./lib.js'
+import q from'./public.js'
 import cache from'./cache.js'
 
-// manually incrementing keyid forces react to repaint
-let urlKeyId = 0  // inc on url param change
-let hdKeyId = 0   // inc on new header
-let colKeyId = 0  // inc on column change
-let qryKeyId = 0  // inc on new query line
-              
+// manually incrementing keyid forces React to repaint components
+// required because data changed from different locations
+let cacheKeyId = 0  // inc to force name,notes repaint
+let urlKeyId = 0  // inc to force URL repaint
+let hdKeyId = 0   // inc to force Header lines repaint
+let colKeyId = 0  // inc to force URL component repaint
+let qryKeyId = 0  // inc to force Query lines repaint
+
 class APIForm extends React.Component{
 
   constructor (props) {
-
     super(props)
     console.log('APIForm.constructor()', props)
     console.log( props.cacheitm )
     
-    //this.cacheitm = props.cacheitm
+    // ToDo:,just pass ID as props.cacheitm is not used after this
+    // this.cacheitm is working data: url, notes, headers
+    this.cacheitm = { ...props.cacheitm }
+    this.cacheitm.headers = [ ...props.cacheitm.headers ]
+    if( this.cacheitm.headers.length === 0 ) this.cacheitm.headers.push('')
 
-    this.uobj = q.url.parse(  props.cacheitm.url  )   // local cache
-    this.uobj.headers = props.cacheitm.headers.slice()
-  //  this.uobj.disabled = JSON.parse(JSON.stringify( props.cacheitm.disabled ))
+    // cache URL components
+    this.uobj = q.url.parse( this.cacheitm.url )   
     this.uobj.qList = q.query.parse( this.uobj.query )
-    if( this.uobj.headers.length === 0) this.uobj.headers.push('')
-    if( this.uobj.qList.length === 0) this.uobj.qList.push('')
+    if( this.uobj.qList.length === 0 ) this.uobj.qList.push('')
 
     this.state  = {
-      cacheitm: props.cacheitm,
-      mode: 'Settings',   //one of: Settings, Log, Result, Exec
-      ...this.uobj,
-      headers: [ ...this.uobj.headers ],
-      qList: [ ...this.uobj.qList ],
+      mode: 'Edit',   // one of: Cache, Edit, Log, Result
+      execMode: 'Wait',   // one of: Wait, Exec, Done
+      resultType:'Text',  // one of: Text, JSON, XML
+
+      // working data
+      ...this.uobj,       
+      qList: [ ...this.uobj.qList ],  
       log:'',
-      resultData:'',
-      resultType:'Text'   //one of: Text, JSON, XML
+      resultData:''
     }
       
     this.autoFocus = ''
@@ -60,30 +82,28 @@ class APIForm extends React.Component{
     this.logNum = 0
     
     this.fetch = this.fetch.bind( this )
-    // this.apiAjaxCallback = this.apiAjaxCallback.bind( this )
     this.fetchCallback = this.fetchCallback.bind( this )
     this.fetchCancel = this.fetchCancel.bind( this )
-
+    
     this.ctrlChange = this.ctrlChange.bind( this )
-    this.getCacheVal = this.getCacheVal.bind( this )
+    this.getStoredVal = this.getStoredVal.bind( this )
     this.modeChange = this.modeChange.bind( this )
     this.multiHandler = this.multiHandler.bind( this )
-
     this.setResultType = this.setResultType.bind( this )
-    this.tabOpenEvent = this.tabOpenEvent.bind( this )
+    this.openBrowserTabEvent = this.openBrowserTabEvent.bind( this )
   
     this.cachePrior = this.cachePrior.bind( this )
     this.cacheNext = this.cacheNext.bind( this )
     this.cacheUpdate = this.cacheUpdate.bind( this )
     this.cacheLoad = this.cacheLoad.bind( this )
-    
   }
 
-  // shouldComponentUpdate(nextProps, nextState){}
+// shouldComponentUpdate(nextProps, nextState){}
   componentDidUpdate(prevProps, prevState, snapshot){
-    if(this.state.mode === 'Exec') 
+    if(this.state.execMode === 'Exec') 
       this.pngRef.current.classList.add('pngIconSpin' )
     else
+    if( this.pngRef.current != null )
       this.pngRef.current.classList.remove('pngIconSpin' )
 
     if(this.autoFocus === '') return
@@ -94,26 +114,28 @@ class APIForm extends React.Component{
   //
   fetch( event ){
     event.preventDefault()
-    
+    let headers = this.cacheitm.headers
+
     this.controller = new AbortController()
-    let str = this.state.url
-    if( this.state.headers.length > 0
-    &&( !(this.state.headers.length === 1 && this.state.headers[0].trim() === '')))
-      str += '\nHeaders:\n' +this.state.headers.join( '\n' )
+    let str = this.cacheitm.url
+    if( headers.length > 0
+    &&( !( headers.length === 1 && headers[0].trim() === '' )))
+      str += '\nHeaders:\n' +headers.join( '\n' )
 
     this.logWrite( 'Exec lib.fetch() with:', str, true )
     this.setState({ 
       resultData:'',
       resultType:'Text',
-      mode:'Exec' 
+      mode:'Log',
+      execMode: 'Exec'
     })
 
     this.apiTimer = performance.now()
     q.fetch(
-      this.state.url, 
+      this.cacheitm.url, 
       this.controller.signal,
       this.fetchCallback, 
-      this.state.headers,
+      headers,
       true 
     )
   }
@@ -151,8 +173,9 @@ class APIForm extends React.Component{
         this.logWrite( 'Network error (details not available to scripts by design):', obj.message
           +`\n- Ctrl+Shift+i to review Javascript console.`
           +`\n- CORS errors may be due to:`
-          +`\n  1. server's request filtering--try url in browser address bar`
-          +`\n  2. an error in a URL parameter--run in browser to get error messages`
+          +`\n  1. server's request filtering`
+          +`\n  2. an error in a URL parameter`
+          +`\n  Open URL in browser to view API server's response.`
         )
       }
   
@@ -161,7 +184,8 @@ class APIForm extends React.Component{
       this.setState({ 
         resultData:'Error',
         resultType:'Text',
-        mode:'Log' 
+        mode:'Log',
+        execMode:'Done' 
       })
     }
     else
@@ -169,7 +193,7 @@ class APIForm extends React.Component{
   }
   fetchCancel( event ){
     event.preventDefault()
-    if( this.state !== 'Exec' || this.controller === null ) return
+    if( this.state.execMode !== 'Exec' || this.controller === null ) return
 
     this.apiTimer = performance.now() -this.apiTimer
     this.controller.abort()
@@ -180,7 +204,8 @@ class APIForm extends React.Component{
     this.setState({ 
       resultData:'Execution cancelled by user.',
       resultType:'Text',
-      mode:'Log' 
+      mode:'Log',
+      execMode:'Done',
     })
   }
   logWrite( head, str = '', reset = false ){
@@ -216,56 +241,58 @@ class APIForm extends React.Component{
     this.setState({ 
       resultData:result,
       resultType:type,
-      mode:'Result' 
+      mode:'Result',
+      execMode:'Done' 
     })
   }
 
   cacheToState( cacheitm ){
-    urlKeyId++  // inc on url param change
-    hdKeyId++   // inc on new header
-    colKeyId++  // inc on column change
-    qryKeyId++  // inc on new query line
+    cacheKeyId++// force name,notes repaint
+    urlKeyId++  // force URL repaint
+    hdKeyId++   // force Headers repaint
+    colKeyId++  // force URL components repaint
+    qryKeyId++  // force Query lines repaint
 
-    this.uobj = q.url.parse(  cacheitm.url  )
-    this.uobj.headers = cacheitm.headers.slice()
-    // this.uobj.disabled = JSON.parse(JSON.stringify( cacheitm.disabled ))
+    // working data
+    this.cacheitm = { ...cacheitm }
+    this.cacheitm.headers = [ ...cacheitm.headers ]
+    if( this.cacheitm.headers.length === 0) this.cacheitm.headers.push('')
+
+    // cache data
+    this.uobj = q.url.parse( this.cacheitm.url )
     this.uobj.qList = q.query.parse( this.uobj.query )
-    if( this.uobj.headers.length === 0) this.uobj.headers.push('')
     if( this.uobj.qList.length === 0) this.uobj.qList.push('')
 
+    // update state
     this.setState({ 
-      mode: 'Settings',   //one of: Settings, Log, Result, Exec
-      cacheitm: cacheitm,
+      execMode: 'Wait',
+      resultType: 'Text', 
+
+      // working data      
       ...this.uobj,
-      headers: [ ...this.uobj.headers ],
       qList: [ ...this.uobj.qList ],
       log:'',
       resultData:'',
-      resultType:'Text'   //one of: Text, JSON, XML
     })
   }
   cachePrior(event){ 
-    let itm = cache.prior( this.state.cacheitm )
+    let itm = cache.prior( this.cacheitm )
     if( itm === null ) itm = cache.last()
 
     this.cacheToState( itm )
   }
   cacheNext(event){ 
-    let itm = cache.next( this.state.cacheitm )
+    let itm = cache.next( this.cacheitm )
     if( itm === null ) itm = cache.first()
 
     this.cacheToState( itm )
   }
   cacheUpdate(event){
-    let itm = cache.update( 
-      this.state.cacheitm,
-      this.state.url,
-      this.state.headers
-    )
-    this.setState({ cacheitm:itm })
+    let itm = cache.update( this.cacheitm )
+    this.cacheitm = itm
   }
   cacheLoad(event){
-    let itm = JSON.parse(JSON.stringify( this.state.cacheitm ))
+    let itm = cache.byID( this.cacheitm.id )
     this.cacheToState( itm )
   }
 
@@ -274,58 +301,74 @@ class APIForm extends React.Component{
       throw new Error( 'APIForm.ctrlChange() error, colname === undefined.' )
     }
     
-    if(colname === 'url'){    // reset this.uobj (local cache)
+    if(colname === 'name'){
+      this.cacheitm.name = val    // update working data
+      this.forceUpdate()          // redraw modeBar
+    } else
+    if(colname === 'notes'){
+      this.cacheitm.notes = val   // update working data
+    } else
+    if(colname === 'url'){   
+      // update working data
+      this.cacheitm.url = val
       this.uobj = q.url.parse( val )
-      this.qList = q.query.parse( this.uobj.query )
-      if( this.qList.length === 0) this.qList.push('')
-
+      this.uobj.qList = q.query.parse( this.uobj.query )
+      if( this.uobj.qList.length === 0) this.uobj.qList.push('')
+      
+      // update state
       qryKeyId++
       colKeyId++
       this.setState({
         ...this.uobj,
-        qList:this.qList
+        qList: [ ...this.uobj.qList ]
       })
     } else
     if(colname === 'header'){
-      let list = [ ...this.state.headers ]
-      list[ multi -1 ] = ( active === 'active' ?val :'' )
-      this.setState({ headers:list })
+      this.cacheitm.headers[ multi -1 ] = ( active === 'active' ?val :'' )
     } else
     if(colname === 'query'){
+      // make new url
       let list = [ ...this.state.qList ]
-      list[ multi -1 ] = ( active === 'active' ?val :'' )
-      let url = q.url.join( this.state, list )
-
+      list[ multi -1 ] = ( active === 'active' ?val :'' )   //update query item
+      this.cacheitm.url = q.url.join( this.state, list )
+      
+      // update state
       urlKeyId++
-      this.setState({ 
-        qList:list,
-        url:url 
-      })
+      this.setState({ qList:list })
     } else
     if( this.uobj[colname] !== undefined ){
       // make new url
       let state = { ...this.state }
-      state[colname] = ( active === 'active' ?val :'' )
-      state['url'] = q.url.join( state, this.state.qList )
-
+      state[colname] = ( active === 'active' ?val :'' )     //update url component
+      this.cacheitm.url = q.url.join( state, this.state.qList )
       
       //update state
-      // this.autoFocus = 'Edit'+colname
-      let obj = { url:state['url'] }
-      obj[ colname ] = state[colname]
       urlKeyId++
+      let obj = {}
+      obj[ colname ] = state[colname]
       this.setState( obj )
     }
   }
-  getCacheVal( colname, multi ){
+  getStoredVal( colname, multi ){
     if(colname === undefined)
-      throw new Error( 'APIForm.getCacheVal() error, colname === undefined.' )
+      throw new Error( 'APIForm.getStoredVal() error, colname === undefined.' )
 
-    if(colname === 'header'){
+    if(colname === 'name'){
+      let itm = cache.byID( this.cacheitm.id )
+      return itm.name
+    } else
+    if(colname === 'notes'){
+      let itm = cache.byID( this.cacheitm.id )
+      return itm.notes
+    } else
+    if(colname === 'header'){   
+      // ToDo: algorithm will fail is line inserted between old items
+      // requires an id assigned to each line
+      let itm = cache.byID( this.cacheitm.id )
       let idx = multi -1
-      if(idx >= this.uobj.headers.length)
+      if(idx >= itm.headers.length)
         return ''
-      return this.uobj.headers[ idx ]
+      return itm.headers[ idx ]
     } else
     if(colname === 'query'){
       let idx = multi -1
@@ -341,7 +384,6 @@ class APIForm extends React.Component{
   }
   modeChange( event ){
     let mode = event.target.dataset.mode
-    // renderNum++
     this.setState({ mode:mode })
   }
   multiHandler( event ){    //splice empty line into specified dataset
@@ -352,8 +394,8 @@ class APIForm extends React.Component{
     // console.log( 'multi', colname, multi )
     
     if( colname === 'header' ){
-      this.uobj.headers = q.insertInList( this.uobj.headers, multi, '' )  //mirror in cache
-      let list = q.insertInList( this.state.headers, multi, '' )
+      this.cacheitm.headers = q.insertInList( this.cacheitm.headers, multi, '' )  //mirror in cache
+      let list = q.insertInList( this.cacheitm.headers, multi, '' )
       this.autoFocus = 'Editheader' +( multi +1)
       hdKeyId++
       this.setState({ headers:list })
@@ -373,70 +415,141 @@ class APIForm extends React.Component{
     if( !event.target.dataset.type ) return
     this.setState({ resultType:event.target.dataset.type })
   }
-  tabOpenEvent( event ){
-    window.open( this.state.url, '_blank' )
+  openBrowserTabEvent( event ){
+    window.open( this.cacheitm.url, '_blank' )
   }
 
   // create jsx
-  getHeader(){
-    let state = this.state
-    let cacheitm = state.cacheitm
-
-    return (
-      <>
-        <div className='frmPanel frmHeader'>
-          <EditBox key={ urlKeyId +'url' } 
-            canDisable={false} 
-            colname='url' 
-            heading='URL' 
-            rows={5} 
-            value={state.url} 
-            onChange={this.ctrlChange}
-            getCacheVal={ this.getCacheVal }
-          >
-            <span className='cachePnl' title={`Viewing: ${cacheitm.name}`}>
-              <span onClick={this.cachePrior} className="material-icons btnIcon" title='Load prior Cache item'>arrow_left</span> 
-              <span onClick={this.cacheLoad} className='cacheLabel' title='Reload from Cache'>Cache #{cacheitm.id}</span>
-              <span onClick={this.cacheNext} className="material-icons btnIcon" title='Load next Cache item'>arrow_right</span> 
-              <span className="material-icons btnIcon btnIconDisabled" title='Create new Cache item'>add_to_queue</span> 
-              <span onClick={this.cacheUpdate} className="material-icons btnIcon" title='Update Cache item'>browser_updated</span> 
-              <span className="material-icons btnIcon btnIconDisabled" title='Delete Cache item'>remove_from_queue</span> 
-            </span>
-            <button disabled={ this.state.mode === 'Exec' }onClick={this.fetch} >Exec</button>
-            <button disabled={ this.state.mode !== 'Exec' } onClick={this.fetchCancel} >Cancel</button> 
-            &nbsp; &nbsp;
-            <span onClick={this.tabOpenEvent} className="material-icons btnIcon" title='Open in browser'>open_in_browser</span> 
-          </EditBox>
-          <img src={png} ref={ this.pngRef } className='pngIcon' alt='' ></img>
-        </div>
-      </>      
-    )
-  }
   getModeBar( mode ){
+    let cacheitm = this.cacheitm
     return(
-      <div className='modebar' >
-        <span onClick={this.modeChange} data-mode='Settings' className={mode === 'Settings' ?'selected' :null} >Settings</span>
+      <div className='modeBar' >
+        <label>{cacheitm.id +'. ' +this.cacheitm.name}</label>
+        <span onClick={this.modeChange} data-mode='Cache' className={mode === 'Cache' ?'selected' :null} >Cache</span>
+        <span onClick={this.modeChange} data-mode='Edit' className={mode === 'Edit' ?'selected' :null} >Edit</span>
         <span onClick={this.modeChange} data-mode='Log' className={mode === 'Log' ?'selected' :null} >Log</span>
         <span onClick={this.modeChange} data-mode='Result' className={mode === 'Result' ?'selected' :null} >Result</span>
       </div>
     )
   }
+  getHeader(){
+    let cacheitm = this.cacheitm
+    return (
+      <>
+        <div className='frmPanel frmHeader '>
+          <EditBox key={ cacheKeyId +'notes' } ref={ this.autoFocus==='Editnotes' ?this.autoFocusRef :null }
+            canDisable={false} 
+            colname='notes' 
+            value={cacheitm.notes} 
+            heading='Notes' 
+            readOnly={false} 
+            rows={1}
+            title='Name this query for quick reference'
+            onChange={this.ctrlChange}
+            getStoredVal={ this.getStoredVal }
+          />
+          <EditBox key={ urlKeyId +'url' } 
+            canDisable={false} 
+            colname='url' 
+            heading='URL' 
+            readOnly={this.state.mode !== 'Edit'} 
+            rows={3} 
+            value={cacheitm.url} 
+            onChange={this.ctrlChange}
+            getStoredVal={ this.getStoredVal }
+          >
+            <span className='cacheBar' title={`Viewing: ${cacheitm.name}`}>
+              <span onClick={this.cachePrior} className="material-icons btnIcon btnCacheArrow" title='Load prior query'>arrow_left</span> 
+              <span onClick={this.cacheLoad} className='queryLabel' title='Reload from Cache'>Query ID: {cacheitm.id}</span>
+              <span onClick={this.cacheNext} className="material-icons btnIcon btnCacheArrow" title='Load next query'>arrow_right</span> 
+              &nbsp; &nbsp; 
+              <span className="material-icons btnIcon btnIconDisabled" title='Save as new query'>add_to_queue</span> 
+              <span onClick={this.cacheUpdate} className="material-icons btnIcon" title='Update this query'>browser_updated</span> 
+              <span className="material-icons btnIcon btnIconDisabled" title='Delete query'>remove_from_queue</span> 
+            </span>
+            { this.state.execMode !== 'Exec' 
+              && <button onClick={this.fetch} >Exec</button> }
+            { this.state.execMode === 'Exec' 
+              && <button onClick={this.fetchCancel} >Cancel</button> }
+            &nbsp; &nbsp; 
+            <span onClick={this.openBrowserTabEvent} className="material-icons btnIcon" title='Open in browser'>open_in_browser</span> 
+          </EditBox>
+          <img src={png} ref={ this.pngRef } className='pngIcon' alt='' ></img>
+          { this.state.execMode === 'Exec'  
+              && <button className='btnFetchCancel' onClick={this.fetchCancel} >Cancel</button> }
+        </div>
+      </>      
+    )
+  }
 
   render(){
-    if(this.state.mode === 'Settings')
-      return this.renderSettings()
-    if(this.state.mode === 'Log'
-    || this.state.mode === 'Exec' )
+    if(this.state.mode === 'Cache')
+      return this.renderCache()
+    if(this.state.mode === 'Edit')
+      return this.renderEdit()
+    if(this.state.mode === 'Log')
       return this.renderLog()
     if(this.state.mode === 'Result')
       return this.renderResult()
   }
-  renderSettings(){
+  renderCache(){
+    let cacheitm = this.cacheitm
+    return (
+      <form className='apiForm' >
+        { this.getModeBar( 'Cache' ) }
+        <div className='frmPanel frmCache'>
+          <div className='queryBar' >
+            <span className='cacheBar' title={`Viewing: ${cacheitm.name}`}>
+              <span onClick={this.cachePrior} className="material-icons btnIcon btnCacheArrow" title='Load prior query'>arrow_left</span> 
+              <span onClick={this.cacheLoad} className='queryLabel' title='Reload from Cache'>Query ID: {cacheitm.id}</span>
+              <span onClick={this.cacheNext} className="material-icons btnIcon btnCacheArrow" title='Load next query'>arrow_right</span> 
+              &nbsp; &nbsp; 
+              <span className="material-icons btnIcon btnIconDisabled" title='Save as new query'>add_to_queue</span> 
+              <span onClick={this.cacheUpdate} className="material-icons btnIcon" title='Update this query'>browser_updated</span> 
+              <span className="material-icons btnIcon btnIconDisabled" title='Delete query'>remove_from_queue</span> 
+            </span>
+            { this.state.execMode !== 'Exec' && <button onClick={this.fetch} >Exec</button> }
+            { this.state.execMode === 'Exec' && <button onClick={this.fetchCancel} >Cancel</button> }
+            &nbsp; &nbsp;
+            <span onClick={this.openBrowserTabEvent} className="material-icons btnIcon" title='Open in browser'>open_in_browser</span> 
+          </div>
+          <EditBox key={ cacheKeyId+'name' } ref={ this.autoFocus==='Editname' ?this.autoFocusRef :null }
+            canDisable={false} 
+            colname='name' 
+            value={cacheitm.name} 
+            heading='Name' 
+            title='Name this query for quick reference'
+            onChange={this.ctrlChange}
+            getStoredVal={ this.getStoredVal }
+          />
+          <EditBox key={ cacheKeyId+'notes' } ref={ this.autoFocus==='Editnotes' ?this.autoFocusRef :null }
+            canDisable={false} 
+            colname='notes' 
+            value={cacheitm.notes} 
+            heading='Notes' 
+            rows={3} 
+            title=''
+            onChange={this.ctrlChange}
+            getStoredVal={ this.getStoredVal }
+          />
+          <EditBox key={ cacheKeyId+'url' } 
+            canDisable={false} 
+            colname='url' 
+            value={cacheitm.url} 
+            heading='URL' 
+            rows={3} 
+            onChange={this.ctrlChange}
+            getStoredVal={ this.getStoredVal }
+          />
+        </div>
+      </form>
+    )
+  }
+  renderEdit(){
     let state = this.state
-    // console.log('keyid', urlKeyId, hdKeyId, qryKeyId, this.state )
 
     let hControls = []
-    this.state.headers.forEach( ( str, idx ) => {
+    this.cacheitm.headers.forEach( ( str, idx ) => {
       let multi = idx+1,
         id = 'Editheader' + multi
       hControls.push(
@@ -447,7 +560,7 @@ class APIForm extends React.Component{
           multi={ multi }
           multiHandler={ this.multiHandler }
           onChange={ this.ctrlChange }
-          getCacheVal={ this.getCacheVal }
+          getStoredVal={ this.getStoredVal }
         />
       )
     })
@@ -464,16 +577,16 @@ class APIForm extends React.Component{
           multi={ multi } 
           multiHandler={ this.multiHandler } 
           onChange={ this.ctrlChange }
-          getCacheVal={ this.getCacheVal }
+          getStoredVal={ this.getStoredVal }
         />
       )
     })
 
     return (
       <form className='apiForm' >
+        { this.getModeBar('Edit') }
         { this.getHeader() }
-        <div className='frmPanel  frmData'>
-          { this.getModeBar('Settings') }
+        <div className='frmPanel frmData frmEdit'>
           { hControls }
           <EditBox key={ colKeyId +'protocol' } 
             colname='protocol' 
@@ -481,37 +594,36 @@ class APIForm extends React.Component{
             heading='Protocol' 
             title='http or https'
             onChange={this.ctrlChange}
-            getCacheVal={ this.getCacheVal }
+            getStoredVal={ this.getStoredVal }
           />
           <EditBox key={ colKeyId +'host' } 
-            // canDisable={false}
             colname='host' 
             heading='Host' 
             value={this.state.host} 
             onChange={this.ctrlChange}
-            getCacheVal={ this.getCacheVal }
+            getStoredVal={ this.getStoredVal }
            />
            <EditBox key={ colKeyId +'port' } 
             colname='port' 
             heading='Port' 
             value={this.state.port} 
             onChange={this.ctrlChange}
-            getCacheVal={ this.getCacheVal }
+            getStoredVal={ this.getStoredVal }
            />
           <EditBox key={ colKeyId +'path' } 
             colname='path' 
             heading='Path' 
             value={this.state.path} 
             onChange={this.ctrlChange}
-            getCacheVal={ this.getCacheVal }
+            getStoredVal={ this.getStoredVal }
           />
           { qListControls }
-          <EditBox key={ colKeyId +'fragment' } 
-            colname='fragment' 
-            heading='Fragment' 
-            value={this.state.fragment} 
+          <EditBox key={ colKeyId +'hash' } 
+            colname='hash' 
+            heading='Hash' 
+            value={this.state.hash} 
             onChange={this.ctrlChange}
-            getCacheVal={ this.getCacheVal }
+            getStoredVal={ this.getStoredVal }
           />         
         </div>
       </form>
@@ -520,9 +632,9 @@ class APIForm extends React.Component{
   renderLog(){
     return (
       <form className='apiForm' >
+        { this.getModeBar( 'Log' ) }
         { this.getHeader() }
         <div className='frmPanel frmData'>
-          { this.getModeBar( 'Log' ) }
           <textarea key='log' ref={ this.logRef }
             className='logText'
             id='log'
@@ -538,33 +650,46 @@ class APIForm extends React.Component{
   renderResult(){
     let resultData = this.state.resultData
     let resultType = this.state.resultType
+    let isJSON = (
+      typeof resultData === 'object'
+      || resultData[0] === '{'  
+      || resultData[0] === '[' 
+    )
+    let isXml = (
+      typeof resultData !== 'object' 
+      && resultData.trim()[0] === '<'
+    )
     return (
       <form className='apiForm' >
+        { this.getModeBar( 'Result' ) }
         { this.getHeader() }
         <div className='frmPanel frmData' >
-          { this.getModeBar( 'Result' ) }
           <div className='resultBar' >
             <button onClick={this.setResultType} data-type='Text' 
               className={ resultType === 'Text' ?'selected' :''} >Text</button>
-            <button onClick={this.setResultType} data-type='JSON' 
-              disabled = { typeof resultData !== 'object' &&  resultData[0] !== '{' && resultData[0] !== '[' }
-              className={ resultType === 'JSON' ?'selected' :''}  >JSON</button>
-            <button onClick={this.setResultType} data-type='XML'  
-              disabled = { typeof resultData === 'object' || resultData.trim()[0] !== '<' }
-              className={ resultType === 'XML' ?'selected' :''} >XML</button>
+            {isJSON 
+            && <button onClick={this.setResultType} data-type='JSON' 
+                className={ resultType === 'JSON' ?'selected' :''}  >JSON</button> }
+            {isXml 
+            && <button onClick={this.setResultType} data-type='XML'  
+              className={ resultType === 'XML' ?'selected' :''} >XML</button> }
+            <button onClick={this.setResultType} data-type='Grid'  
+              disabled
+              className={ resultType === 'Grid' ?'selected' :''} >Grid</button> 
           </div>
-          { resultType === 'Text'  && <textarea key='resulttext' ref={ this.resultRef }
-          // {  <textarea key='resulttext' ref={ this.resultRef }
-            className='resultText'
-            readOnly
-            defaultValue={ typeof resultData === 'object'
-            ? JSON.stringify( resultData, null, 3 )
-            : resultData 
-            }
-            wrap='on'
-          />}
-          { resultType === 'JSON'  && 
-            <div className='resultJSON' >
+          { resultType === 'Text' 
+          && <textarea key='resulttext' ref={ this.resultRef }
+              className='resultText'
+              readOnly
+              defaultValue={ typeof resultData === 'object'
+              ? JSON.stringify( resultData, null, 3 )
+              : resultData 
+              }
+              wrap='on'
+            />
+          }
+          { resultType === 'JSON'  
+          && <div className='resultJSON' >
               <ReactJson key='resultjson'
                 src={ typeof resultData === 'object'
                   ? resultData

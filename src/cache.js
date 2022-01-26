@@ -6,8 +6,9 @@
 
   cache.items[ n ] = {
     id: number
-    name:''         
     url: ''
+    name:''         
+    notes: ''
     headers: []     // [ 'xxx:yyy', ... ]
  //   disabled: {
    //   headers: []   // [ 'xxx:yyy', ... ]
@@ -16,53 +17,25 @@
   }
 */
 
-import q from'./lib.js'
+import q from'./public.js'
 
 const cache = {
 
   items: [],
-
   lastid: 0,
+
   idMake(){
     return ++this.lastid
   },
-  byId( id ){
-    if( typeof id !== 'string' )
-      throw new Error( `cache.byId() error, id provide is bad: [${id}]` )
+  byID( id ){
+    if( typeof id !== 'number' )
+      throw new Error( `cache.byID() error, id provide is bad: [${id}]` )
     
     let itm = this.items.find( itm => itm.id === id )
     return itm
   },
-  getIdx( itmfind ){
-    return this.items.findIndex( itm => itm.id === itmfind.id )
-  },
-
-  add: function( url, name=null, headers=[], disabledHeaders=[], disabledQuery=[] ){
-    if( url === undefined || url === null | url === '')
-      throw new Error( `cache.add() error, bad URL received.` )
-
-   let itm = {
-      id: this.idMake(),
-      name: ( name !== null ?name :q.url.host( url )),
-      url: url,
-      headers: headers,
- //     disabled: {
- //       headers: disabledHeaders,
- //       query: disabledQuery
- //     }
-    }
-      
-    this.items.push( itm )
-    return itm
-  },
-  show: function( id = null ){
-    if( id === null ){
-      console.log( `cache.show(), all ${this.items.length} items:`, this.items )
-      return
-    }
-
-    let itm = this.byId( id )
-    console.log( `cache.show() id = ${id}`, itm )
+  getIdx( itmToFind ){
+    return this.items.findIndex( itm => itm.id === itmToFind.id )
   },
 
   first: function( itm ){
@@ -92,20 +65,51 @@ const cache = {
     return this.items[ idx ]
   },
  
-  // delete: function( id ){
-  // }
-  // get: function( id ){
-  //   return this.items[ id ]
-  // },
-  update: function( itm, url, headers = [] ){
+  add: function( url, name=null, notes='', headers=[], disabledHeaders=[], disabledQuery=[] ){
+    if( url === undefined || url === null | url === '')
+      throw new Error( `cache.add() error, bad URL received.` )
+
+   let itm = {
+      id: this.idMake(),
+      name: ( name !== null ?name :q.url.host( url )),
+      url: url,
+      notes: notes,
+      headers: headers.slice(),
+ //     disabled: {
+ //       headers: disabledHeaders,
+ //       query: disabledQuery
+ //     }
+    }
+      
+    this.items.push( itm )
+    return itm
+  },
+  update: function( itm ){
     //todo: add validations
     
     let idx = this.getIdx( itm )
-    this.items[ idx ].url = url
-    this.items[ idx ].headers = headers.slice()
+    if( idx === -1)
+      throw new Error(`cache.update() error, itm.id not found:[${itm.id}].`)
+      
+    this.items[ idx ].url = itm.url
+    this.items[ idx ].name = itm.name
+    this.items[ idx ].notes = itm.notes
+    this.items[ idx ].headers = itm.headers.slice()
     
     return this.items[ idx ]
   },
+  // delete: function( id ){
+  // },
+
+  show: function( id = null ){
+    if( id === null ){
+      console.log( `cache.show(), all ${this.items.length} items:`, this.items )
+      return
+    }
+
+    let itm = this.byID( id )
+    console.log( `cache.show() id = ${id}`, itm )
+  }
 }
 
 export default cache

@@ -24,8 +24,11 @@
 - Technical references from [Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web)
 
 ## ToDo
+- Private_class_fields: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields
+- Destructuring_assignment: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+- Nullish_coalescing_operator: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing_operator
+- Optional_chaining: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
 - implement new logic for EditBox disable functionality. Disabled params need to exist in local and global caches. Currently, disabled status only stored in EditBox, so lost on React redraw--restored via Reload icon via APIForm.uobj.
-- allow panels to remain in memory (instead of redrawing)
 - allow form width to be expanded by user dragging
 - allow request type to be manually set; currently only GET used
 - build server caching backend
@@ -36,6 +39,10 @@
 --- xml/json view would be simple text view with indents
 
 ## Updates
+
+#### 20220226
+- refactored, refactored, refactored and then some
+
 
 #### 20220116
 - added cache.js for global url caching--not fully implemented. Functionality is basic but sufficient for now.

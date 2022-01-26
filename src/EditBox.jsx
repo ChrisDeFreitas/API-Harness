@@ -76,7 +76,7 @@ const EditBox = React.forwardRef((props, ref) => {
       props.onChange( colname, val, tmp, multi )
   }  
   function resetEvent( event ){
-    let val = props.getCacheVal( colname, multi )
+    let val = props.getStoredVal( colname, multi )
     setVal( val )
     if( props.onChange != null )
       props.onChange( colname, val, active, multi )
@@ -88,9 +88,8 @@ const EditBox = React.forwardRef((props, ref) => {
   }
 
   let activeIcon = ( active === 'active' ?'check_circle_outline' :'radio_button_unchecked' )
-  let btnDisable = ( props.canDisable === true
-    ? <span className="material-icons btnIcon" title='Toggle Enable/Disable (Alt+T)' onClick={toggleEvent} >{activeIcon}</span>
-    : <span className="material-icons btnIconEnabled" title='Always Enabled' >check_circle_outline</span>)
+  let btnDisable = ( props.canDisable === false ? ''
+    : <span className="material-icons btnIcon" title='Toggle Enable/Disable (Alt+T)' onClick={toggleEvent} >{activeIcon}</span> )
   let btnMulti = ( multi === '' 
     ?null
     : <span className="material-icons btnIcon" title={'Add new ' +colname +' line (Alt+N)'}
@@ -101,13 +100,15 @@ const EditBox = React.forwardRef((props, ref) => {
   )
     
   let ctrl = null
+  let readOnly = props.readOnly
   if(props.rows !== null){  // create textarea control
     ctrl = <textarea  ref={ref}
       data-colname={colname}
       data-multi={multi}
       disabled = {(active !== 'active' ?true :false)}
       id = {'Edit' +colname +multi}
-      // maxlength={props.width} 
+      // maxlength={props.width}
+      readOnly={readOnly} 
       rows={props.rows} 
       title={props.title} 
       value={val} 
@@ -122,6 +123,7 @@ const EditBox = React.forwardRef((props, ref) => {
       data-multi={multi}
       disabled = {(active !== 'active' ?true :false)}
       id = {'Edit' +colname +multi}
+      readOnly={props.readOnly} 
       title={props.title} 
       value={val} 
       // maxlength={props.width} 
@@ -135,13 +137,14 @@ const EditBox = React.forwardRef((props, ref) => {
     <span className={'editBox editBox_'+colname} >
       <span className='heading' >{props.heading}</span> 
       { ctrl }
-      <span className='btnIconPnl'>
+      { !readOnly 
+      &&  <span className='btnIconPnl'>
         { props.children }
         { btnDisable }
         <span onClick={clearEvent} className="material-icons btnIcon" title='Clear contents  (Alt+C)'>delete</span> 
         <span onClick={resetEvent} className="material-icons btnIcon" title='Reload initial value  (Alt+R)'>replay</span> 
         { btnMulti }
-      </span>
+      </span> }
     </span>
   )
 
@@ -151,6 +154,7 @@ EditBox.propTypes = {
   canDisable: PropTypes.bool,
   colname: PropTypes.string,
   heading: PropTypes.string,
+  readOnly: PropTypes.bool,
   rows: PropTypes.number,   // rows !== null then use textarea
   title: PropTypes.string,
   value: PropTypes.string,
@@ -159,12 +163,13 @@ EditBox.propTypes = {
   multiHandler: PropTypes.func, // parent function to add dynamic input
   
   onChange: PropTypes.func,
-  getCacheVal: PropTypes.func,
+  getStoredVal: PropTypes.func,
 }
 EditBox.defaultProps = {
   canDisable: true,
   colname: '',
   heading: 'EditBox',
+  readOnly: false,
   rows: null,
   title: '',
   value: '',
@@ -173,7 +178,7 @@ EditBox.defaultProps = {
   multiHandler: null,
 
   onChange: null,
-  getCacheVal: null
+  getStoredVal: null
 }
 
 export default EditBox

@@ -13,7 +13,7 @@
     path
     port
     query
-    fragment
+    hash
   }
 
 */
@@ -86,11 +86,58 @@ var q = {
         callback( 'error', err )
     }
   },
+/*  axios: function(    // for server calls
+    url = '', 
+    signal = null,  //abortController.signal
+    callback = null, 
+    debug = false,
+    callbackData = null   // returned to client
+  ){
+    //reference: https://axios-http.com/docs/
+    const axios = require('axios').default
+    let ii = 0
+
+    if(callback === null) debug = true
+    if( debug === true ) 
+      console.log('lib.axios url:', url )
+    
+    axios.get( url, {
+      transitional: {
+        // silentJSONParsing: true,
+        forcedJSONParsing: false,     //default: true; forces object output
+        // clarifyTimeoutError: false
+      },
+      decompress: false,
+      signal: signal,
+      responseType: 'text',
+      timeout: 5000,
+      onDownloadProgress: function (progressEvent) {
+        ++ii
+        if( callback !== null )
+          callback( progressEvent.type, progressEvent, debug, ii)
+      }
+    } )
+    .then( function( response ){
+      if( debug === true ) {
+        console.log('Axios Config:\n', response.config) 
+        console.log('Request headers:\n', response.request._header)
+        console.log('Response headers:\n', response.headers)
+        console.log('Status:', response.status, response.statusText, response.headers['content-length']+' bytes', typeof response.data)
+      }
+      if( callback !== null )
+        callback( 'response', response, debug, callbackData)
+    })
+    .catch(function (error) {
+      console.error('Axios error caught:', error)
+      if( callback !== null )
+        callback( 'error', error, debug)
+    })
+  },  */
   fetch(    
     url = '', 
     signal = null,         // AbortController
-    callback = null,       // callback( type=error/response/progress, Response||TypeError/Response/{ num, ms, current, total } ) 
-    headers = null,        // [ 'xxx=yyy', ... ]
+    callback = null,       // callback( type=> error/response/progress, obj=> Response||TypeError/Response/{ num, ms, current, total } ) 
+    headers = null,        // [ 'xxx:yyy', ... ]
     debug = false          // true === write status to console
   ){
     if(callback === null) debug = true
@@ -101,11 +148,12 @@ var q = {
     }
     
     let hdrs = null
-    if(debug && headers != null && headers.length > 0){
+    if(headers != null && headers.length > 0){
       headers.forEach( line => {
         if( line.trim() === '' ) return
         if( hdrs === null) hdrs = new Headers()
         let vals = line.split( ':' )
+        if( vals[1] === undefined || vals[1] === '' ) return
         hdrs.append( vals[0].trim(), vals[1].trim() )
       })
     }
@@ -232,7 +280,7 @@ var q = {
         url += str
       }
 
-      url += test('fragment',     '#', '')
+      url += test('hash',     '#', '')
       return url
     },
     obj: function(){
@@ -245,14 +293,22 @@ var q = {
         path:   '',
         query:  '',
         // qList:  [],
-        fragment: ''
+        hash: ''
       }
     },
     parse( str ){ //return a uobj
       str = str.trim()
       if( str === '' ) return q.url.obj()
 
-      const url = new URL( str )
+      var url = null
+      try{
+        url = new URL( str )
+      }
+      catch( error ){
+        alert(`public.url.parse() error: [${error}]. \nURL = [${str}].`)
+        return null
+      }
+
       let uobj = {
         url: str,
         protocol: url.protocol,
@@ -262,15 +318,14 @@ var q = {
         path:   url.pathname,
         query:  url.search,
         // qList:  [],
-        fragment:   url.fragment
+        hash:   url.hash
       }
       if( ':' === uobj.protocol[ url.protocol.length -1 ] )
         uobj.protocol = uobj.protocol.substring( 0 , uobj.protocol.length -1 )
-      if( '/' === uobj.path[ 0 ] )
-        uobj.path = uobj.path.substring( 1 )
-      if( '?' === uobj.query[ 0 ] )
-        uobj.query = uobj.query.substring( 1 )
+      if( '/' === uobj.path[ 0 ] )  uobj.path = uobj.path.substring( 1 )
+      if( '?' === uobj.query[ 0 ] ) uobj.query = uobj.query.substring( 1 )
       // uobj.qList = uobj.query.split('&')
+      if( '#' === uobj.hash[ 0 ] )  uobj.hash = uobj.hash.substring( 1 )
 
       return uobj
     }
