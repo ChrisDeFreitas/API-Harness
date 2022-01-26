@@ -33,11 +33,11 @@ cache.add(
   ]
 )
 cache.add( 
-  'https://sportsdatabase.com/NBA/query.html?sdql=t%3Ateam%2C+t%3Apoints+%40+t%3Adate%3D20220125&submit=++S+D+Q+L+%21++',
+  'https://sportsdatabase.com/NBA/query.json?sdql=date,team,o:team,line@date=20220125%20and%20team=Trailblazers',
   'SQL API',
-  'API needs refinement; Has CORS error.',
+  'API call needs refinement; Has CORS error.',
   [
-   'token:ENTERT_OKEN',
+   'token:YOUR_TOKEN',
    'user:USER_NAME',
   ]
 )
