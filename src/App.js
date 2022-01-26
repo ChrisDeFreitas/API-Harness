@@ -13,7 +13,7 @@ cache.add(
 cache.add(
    'https://www.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=ae7a8f0923f78862f2082cf39148b3bd&photo_id=51843886361&format=json&nojsoncallback=1',
    'flickr.photos.getInfo',
-   'Reurn JSON data about photo, inluding URL'
+   'Return JSON data about photo, inludes URL'
 )
 cache.add( 'https://api.publicapis.org/entries' )
 let cacheitm = cache.add( 'https://api.publicapis.org/entries?description=health' )
@@ -33,7 +33,7 @@ cache.add(
   ]
 )
 cache.add( 
-  'https://sportsdatabase.com/NBA/query.json?sdql=date,team,o:team,line@date=20220125%20and%20team=Trailblazers',
+  'https://sportsdatabase.com/NBA/query.json?sdql=date,team,o:team,points,o:points@date=20220125%20and%20team=Trailblazers',
   'SQL API',
   'API call needs refinement; Has CORS error.',
   [
