@@ -172,7 +172,7 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
     border-radius: 0 0 5px 5px 
     border-bottom: 1px outset #000
     border-top: 0
-    height: 466px
+    height: 495px
     overflow-y: auto
     padding: 0 0 0.5em
   &.frmCache
@@ -182,7 +182,7 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
     .editBox_name
       margin-top: 2em
   &.frmEdit
-    height: 430px
+    height: 454px
 
 .queryBar
   @include btnBar
@@ -263,6 +263,23 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
       position: relative
       top: 7px
       font-size: 1.6em
+
+.cachePnl
+  display: inline-block
+  height: auto
+  // left: -30px
+  padding-left: 0 1em
+  position: relative
+  text-align: left
+  top: -20em
+  // width: 25em
+  .editBox
+    .heading
+      padding-left: 1em
+      width: 3.5em
+    input,
+    textarea
+      width: 30em
 
 .btnFetchCancel
   display: inline

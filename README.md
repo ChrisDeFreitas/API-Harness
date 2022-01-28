@@ -40,9 +40,13 @@
 
 ## Updates
 
-#### 20220226
-- refactored, refactored, refactored and then some
+#### 20220128
+- added /cacheData.json to make it easy to edit
+- moved cache data loading to App.js
+- added CacheListbox component to Cache tab
 
+#### 20220126
+- refactored, refactored, refactored and then some
 
 #### 20220116
 - added cache.js for global url caching--not fully implemented. Functionality is basic but sufficient for now.

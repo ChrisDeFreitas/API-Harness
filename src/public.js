@@ -166,7 +166,7 @@ var q = {
       // headers: hdrs,
       // integrity
       // keepalive
-      mode: 'cors',
+      mode: 'cors',  //'no-cors', //'same-origin', 
       redirect: 'follow',
       // referrer
       signal: signal

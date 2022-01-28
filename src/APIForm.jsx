@@ -28,10 +28,13 @@ import XMLViewer from 'react-xml-viewer'
 
 import './APIForm.sass'
 import EditBox from'./EditBox'
+import CacheListbox from'./CacheListbox'
 import png from './resources/satelite-outline.png'
 
 import q from'./public.js'
 import cache from'./cache.js'
+// cache populated at the bottom of cache.js
+
 
 // manually incrementing keyid forces React to repaint components
 // required because data changed from different locations
@@ -47,7 +50,7 @@ class APIForm extends React.Component{
     super(props)
     console.log('APIForm.constructor()', props)
     console.log( props.cacheitm )
-    
+
     // ToDo:,just pass ID as props.cacheitm is not used after this
     // this.cacheitm is working data: url, notes, headers
     this.cacheitm = { ...props.cacheitm }
@@ -60,7 +63,7 @@ class APIForm extends React.Component{
     if( this.uobj.qList.length === 0 ) this.uobj.qList.push('')
 
     this.state  = {
-      mode: 'Edit',   // one of: Cache, Edit, Log, Result
+      mode: 'Cache',   // one of: Cache, Edit, Log, Result
       execMode: 'Wait',   // one of: Wait, Exec, Done
       resultType:'Text',  // one of: Text, JSON, XML
 
@@ -96,6 +99,7 @@ class APIForm extends React.Component{
     this.cacheNext = this.cacheNext.bind( this )
     this.cacheUpdate = this.cacheUpdate.bind( this )
     this.cacheLoad = this.cacheLoad.bind( this )
+    this.cacheItemSelect = this.cacheItemSelect.bind( this )
   }
 
 // shouldComponentUpdate(nextProps, nextState){}
@@ -295,6 +299,15 @@ class APIForm extends React.Component{
     let itm = cache.byID( this.cacheitm.id )
     this.cacheToState( itm )
   }
+  cacheItemSelect( id ){
+    let itm = cache.byID( id )
+    if( itm === null ){
+      throw new Error(`APIForm.cacheItemSelect() error, bad ID received[${id}].`)
+      // itm = cache.first()
+    } 
+
+    this.cacheToState( itm )
+  }
 
   ctrlChange( colname, val, active, multi ){
     if(colname === undefined){
@@ -443,7 +456,7 @@ class APIForm extends React.Component{
             value={cacheitm.notes} 
             heading='Notes' 
             readOnly={false} 
-            rows={1}
+            rows={2}
             title='Name this query for quick reference'
             onChange={this.ctrlChange}
             getStoredVal={ this.getStoredVal }
@@ -453,7 +466,7 @@ class APIForm extends React.Component{
             colname='url' 
             heading='URL' 
             readOnly={this.state.mode !== 'Edit'} 
-            rows={3} 
+            rows={2} 
             value={cacheitm.url} 
             onChange={this.ctrlChange}
             getStoredVal={ this.getStoredVal }
@@ -513,34 +526,37 @@ class APIForm extends React.Component{
             &nbsp; &nbsp;
             <span onClick={this.openBrowserTabEvent} className="material-icons btnIcon" title='Open in browser'>open_in_browser</span> 
           </div>
-          <EditBox key={ cacheKeyId+'name' } ref={ this.autoFocus==='Editname' ?this.autoFocusRef :null }
-            canDisable={false} 
-            colname='name' 
-            value={cacheitm.name} 
-            heading='Name' 
-            title='Name this query for quick reference'
-            onChange={this.ctrlChange}
-            getStoredVal={ this.getStoredVal }
-          />
-          <EditBox key={ cacheKeyId+'notes' } ref={ this.autoFocus==='Editnotes' ?this.autoFocusRef :null }
-            canDisable={false} 
-            colname='notes' 
-            value={cacheitm.notes} 
-            heading='Notes' 
-            rows={3} 
-            title=''
-            onChange={this.ctrlChange}
-            getStoredVal={ this.getStoredVal }
-          />
-          <EditBox key={ cacheKeyId+'url' } 
-            canDisable={false} 
-            colname='url' 
-            value={cacheitm.url} 
-            heading='URL' 
-            rows={3} 
-            onChange={this.ctrlChange}
-            getStoredVal={ this.getStoredVal }
-          />
+          <CacheListbox key={cache.items.length+'cachList'} selectedID={this.cacheitm.id} onSelect={this.cacheItemSelect} />
+          <div className='cachePnl' >
+            <EditBox key={ cacheKeyId+'name' } ref={ this.autoFocus==='Editname' ?this.autoFocusRef :null }
+              canDisable={false} 
+              colname='name' 
+              value={cacheitm.name} 
+              heading='Name' 
+              title='Name this query for quick reference'
+              onChange={this.ctrlChange}
+              getStoredVal={ this.getStoredVal }
+            />
+            <EditBox key={ cacheKeyId+'notes' } ref={ this.autoFocus==='Editnotes' ?this.autoFocusRef :null }
+              canDisable={false} 
+              colname='notes' 
+              value={cacheitm.notes} 
+              heading='Notes' 
+              rows={5} 
+              title=''
+              onChange={this.ctrlChange}
+              getStoredVal={ this.getStoredVal }
+            />
+            <EditBox key={ cacheKeyId+'url' } 
+              canDisable={false} 
+              colname='url' 
+              value={cacheitm.url} 
+              heading='URL' 
+              rows={5} 
+              onChange={this.ctrlChange}
+              getStoredVal={ this.getStoredVal }
+            />
+          </div>
         </div>
       </form>
     )

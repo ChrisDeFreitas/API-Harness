@@ -1,0 +1,78 @@
+[{
+  "name": "Wikipedia search",
+  "url": "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=Nelson%20Mandela&utf8=&format=json",
+  "notes": "Home: https://www.mediawiki.org/wiki/API:Search\nError faq: https://www.mediawiki.org/w/api.php?action=help&modules=main\n Searc for cors"
+},{
+  "name": "Teleport city search",
+  "url": "https://api.teleport.org/api/cities/?search=toronto",
+  "notes": "Home: https://developers.teleport.org/api/getting_started/"
+},{
+  "name": "Teleport city information",
+  "url": "https://api.teleport.org/api/cities/geonameid:6167865/",
+  "notes": "City info for Toronto"
+},{
+  "name": "Teleport city quality of life",
+  "url": "https://api.teleport.org/api/urban_areas/slug:toronto/scores/",
+  "notes": "Quality of life for Toronto"
+},{
+    "name":"flickr.photos.search",
+    "url": "https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=0425059183b82e270b73329af6f6d39f&tags=beach&format=json&nojsoncallback=1",
+    "notes": "Combine Owner and ID to derive webpage:\nhttps://www.flickr.com/photos/[OwnerID]/[PhotoID]"
+},{
+    "name":"flickr.photos.getInfo",
+    "url":"https://www.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=ae7a8f0923f78862f2082cf39148b3bd&photo_id=51843886361&format=json&nojsoncallback=1",
+    "notes":"Return JSON data about photo, inludes URL"
+},{
+    "name": "https://api.publicapis.org/entries?description=health",
+    "url": "",
+    "notes": ""
+},{
+    "name": "Songsterr JSON endpoint",
+    "url": "https://www.songsterr.com/a/ra/songs.json?pattern=Marley",
+    "notes": ""
+},{
+    "name": "Songsterr XML endpoint",
+    "url": "https://www.songsterr.com/a/ra/songs.xml?pattern=Marley",
+    "notes": ""
+},{
+    "name": "",
+    "url": "https://api.open-elevation.com/api/v1/lookup?locations=10,10|20,20|41.161758,-8.583933",
+    "notes": ""
+},{
+    "name": "",
+    "url": "https://api.opentopodata.org/v1/test-dataset?locations=56,123",
+    "notes": ""
+},{
+    "name": "Nasa Mars Rover Images",
+    "url": "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=DEMO_KEY",
+    "notes": "Extremely low res images"
+},{
+    "name": "https://jsonplaceholder.typicode.com/posts/1",
+    "url": "",
+    "notes": ""
+},{
+    "name": "NBA todaysScoreboard",
+    "url": "https://stats.nba.com/stats/scoreboard/todaysScoreboard_00.json",
+    "notes": "API call fails",
+    "headers": [
+      "x-nba-stats-origin:stats",
+      "x-nba-stats-token:true"
+     ]
+},{
+  "name": "Jokes API",
+  "url": "https://api.jokes.one/jod?category=animal",
+  "notes": "Home: https://jokes.one/api/joke/\nList categories: /jod/categories; animal, blonde, jod, knock-knock"
+},{
+  "name": "SDQL API",
+  "url": "https://sportsdatabase.com/NBA/query.json?sdql=date,team,o:team,points,o:points@date=20220125%20and%20team=Trailblazers",
+  "notes": "API call needs refinement; Has CORS error.",
+  "headers": [
+    "token:YOUR_TOKEN",
+    "user:USER_NAME"
+   ]
+},{
+  "name": "",
+    "url": "",
+    "notes": ""
+  }
+]

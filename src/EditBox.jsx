@@ -1,6 +1,6 @@
 /*
 EditBox.jsx
-  - by Chris DeFreitas, ChrisDeFreitas777@gmail.com
+  - by Chris DeFreitas
   - display a formatted edit control in ApiHarness
   - edit types supported:
     -- input.type = text

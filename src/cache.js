@@ -3,6 +3,8 @@
   - by Chris DeFreitas, ChrisDeFreitas777@gmail.com
   - cache api calls for ApiHarness
   - no operations performs on cached content ( no side effects )
+  - data loaded at the bottom of this file
+
 
   cache.items[ n ] = {
     id: number
@@ -10,21 +12,52 @@
     name:''         
     notes: ''
     headers: []     // [ 'xxx:yyy', ... ]
- //   disabled: {
-   //   headers: []   // [ 'xxx:yyy', ... ]
-     // query: []     // [ 'xxx=yyy', ... ]
-    //}
+  //  disabled: {
+  //    headers: []   // [ 'xxx:yyy', ... ]
+  //    query: []     // [ 'xxx=yyy', ... ]
+  //   }
   }
-*/
 
+*/
 import q from'./public.js'
 
 const cache = {
 
-  items: [],
+  items: [
+    {
+      id: 0,
+      url: "http://archive.org/wayback/available?url=example.com&timestamp=20060101",
+      name: "Wayback Machine",
+      notes: "Home: https://archive.org/help/wayback_api.php\nIf not available/accessible: archived_snapshots==={}",
+      headers: []
+    }
+  ],
   lastid: 0,
 
-  idMake(){
+  init: function( callback = null ){
+    // assume: each record has a url
+    // assume: each url is valid
+    // if( cache.items.length > 1 ) return
+
+    q.fetch( '/cacheData.json',
+      null,
+      function( type, obj ){
+        if( type === 'error')
+          alert(`cache.init() error, could not load cacheData.js: [${obj}].`)
+        if( type === 'response'){
+          // console.log( 'CacheData.json:', obj.data )
+          let str = obj.data.trim()
+          let list = JSON.parse( str )
+          console.log( 'CacheData List:', list )
+          cache.load( list )
+          cache.show()
+          if( callback !== null)
+            callback( true )
+        }
+     })
+  },
+
+    idMake(){
     return ++this.lastid
   },
   byID( id ){
@@ -38,10 +71,10 @@ const cache = {
     return this.items.findIndex( itm => itm.id === itmToFind.id )
   },
 
-  first: function( itm ){
+  first: function(){
     return this.items[0]
   },
-  last: function( itm ){
+  last: function(){
     return this.items[ this.items.length -1 ]
   },
   prior: function( itm ){
@@ -71,7 +104,7 @@ const cache = {
 
    let itm = {
       id: this.idMake(),
-      name: ( name !== null ?name :q.url.host( url )),
+      name: ( name !== null && name !== '' ?name :q.url.host( url )),
       url: url,
       notes: notes,
       headers: headers.slice(),
@@ -83,6 +116,19 @@ const cache = {
       
     this.items.push( itm )
     return itm
+  },
+  load: ( list ) =>{
+    // assume: each record has a url
+    // assume: each url is valid
+    list.forEach( obj => {
+      if( obj.url === undefined || obj.url === '') return
+      cache.add( 
+        obj.url, 
+        (obj.name ?obj.name :''), 
+        (obj.notes ?obj.notes :''), 
+        (obj.headers ?obj.headers :[]), 
+      )
+    })
   },
   update: function( itm ){
     //todo: add validations
@@ -103,13 +149,15 @@ const cache = {
 
   show: function( id = null ){
     if( id === null ){
-      console.log( `cache.show(), all ${this.items.length} items:`, this.items )
+      console.log( `cache.show(), all ${this.items.length} items:\n`, this.items )
       return
     }
 
     let itm = this.byID( id )
     console.log( `cache.show() id = ${id}`, itm )
-  }
+  },
+
 }
 
+// cache.init()
 export default cache
