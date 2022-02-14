@@ -1,5 +1,5 @@
 /*
-  lib.js
+  public.js
   - by Chris DeFreitas, ChrisDeFreitas777@gmail.com
   API Harness shared code
 

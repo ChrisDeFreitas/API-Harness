@@ -11,6 +11,8 @@
     url: ''
     name:''         
     notes: ''
+    log:'',
+    result:'',
     headers: []     // [ 'xxx:yyy', ... ]
   //  disabled: {
   //    headers: []   // [ 'xxx:yyy', ... ]
@@ -19,6 +21,7 @@
   }
 
 */
+import json5 from 'json5'
 import q from'./public.js'
 
 const cache = {
@@ -26,9 +29,12 @@ const cache = {
   items: [
     {
       id: 0,
-      url: "http://archive.org/wayback/available?url=example.com&timestamp=20060101",
-      name: "Wayback Machine",
-      notes: "Home: https://archive.org/help/wayback_api.php\nIf not available/accessible: archived_snapshots==={}",
+      "url": "https://jsonplaceholder.typicode.com/posts/1",
+      "name": "jsonplaceholder.typicode.com",
+      "notes": "A free online REST API that you can use whenever you need some fake data:\n/posts  100 posts\n/comments  500 comments\n/albums  100 albums\n/photos  5000 photos\n/todos  200 todos\n/users  10 users",
+      log:'',
+      result:``,
+      // {"_embedded":{"city:search-results":[{"_links":{"city:item":{"href":"https://api.teleport.org/api/cities/geonameid:6167865/"}},"matching_alternate_names":[{"name":"toronto"},{"name":"Toronto"}],"matching_full_name":"Toronto, Ontario, Canada"},{"_links":{"city:item":{"href":"https://api.teleport.org/api/cities/geonameid:10103951/"}},"matching_alternate_names":[{"name":"Toronto"}],"matching_full_name":"Toronto, New South Wales, Australia"},{"_links":{"city:item":{"href":"https://api.teleport.org/api/cities/geonameid:5174095/"}},"matching_alternate_names":[{"name":"Toronto"}],"matching_full_name":"Toronto, Ohio, United States"}]},"_links":{"curies":[{"href":"https://developers.teleport.org/api/resources/Location/#!/relations/{rel}/","name":"location","templated":true},{"href":"https://developers.teleport.org/api/resources/City/#!/relations/{rel}/","name":"city","templated":true},{"href":"https://developers.teleport.org/api/resources/UrbanArea/#!/relations/{rel}/","name":"ua","templated":true},{"href":"https://developers.teleport.org/api/resources/Country/#!/relations/{rel}/","name":"country","templated":true},{"href":"https://developers.teleport.org/api/resources/Admin1Division/#!/relations/{rel}/","name":"a1","templated":true},{"href":"https://developers.teleport.org/api/resources/Timezone/#!/relations/{rel}/","name":"tz","templated":true}],"self":{"href":"https://api.teleport.org/api/cities/?search=toronto\u0026geohash="}},"count":3}      
       headers: []
     }
   ],
@@ -37,17 +43,16 @@ const cache = {
   init: function( callback = null ){
     // assume: each record has a url
     // assume: each url is valid
-    // if( cache.items.length > 1 ) return
+    console.log('cache.init() load data from:', document.URL +'cacheData.json5')
 
-    q.fetch( '/cacheData.json',
+    q.fetch( document.URL +'cacheData.json5',
       null,
       function( type, obj ){
         if( type === 'error')
           alert(`cache.init() error, could not load cacheData.js: [${obj}].`)
         if( type === 'response'){
-          // console.log( 'CacheData.json:', obj.data )
           let str = obj.data.trim()
-          let list = JSON.parse( str )
+          let list = json5.parse( str )
           console.log( 'CacheData List:', list )
           cache.load( list )
           cache.show()
@@ -57,7 +62,7 @@ const cache = {
      })
   },
 
-    idMake(){
+  idMake(){
     return ++this.lastid
   },
   byID( id ){
@@ -98,7 +103,11 @@ const cache = {
     return this.items[ idx ]
   },
  
-  add: function( url, name=null, notes='', headers=[], disabledHeaders=[], disabledQuery=[] ){
+  add: function(
+    url, name=null, notes='', 
+    log = '', result = '',
+    headers=[], disabledHeaders=[], disabledQuery=[] 
+  ){
     if( url === undefined || url === null | url === '')
       throw new Error( `cache.add() error, bad URL received.` )
 
@@ -107,6 +116,8 @@ const cache = {
       name: ( name !== null && name !== '' ?name :q.url.host( url )),
       url: url,
       notes: notes,
+      log: log,
+      result: log,
       headers: headers.slice(),
  //     disabled: {
  //       headers: disabledHeaders,
@@ -140,6 +151,8 @@ const cache = {
     this.items[ idx ].url = itm.url
     this.items[ idx ].name = itm.name
     this.items[ idx ].notes = itm.notes
+    this.items[ idx ].log = itm.log
+    this.items[ idx ].result = itm.result
     this.items[ idx ].headers = itm.headers.slice()
     
     return this.items[ idx ]

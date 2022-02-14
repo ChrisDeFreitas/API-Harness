@@ -3,7 +3,8 @@ node_modules/
 jspm_packages/
 /.pnp
 .pnp.js
-/.vscode
+.vscode/
+tmp/
 
 # testing
 /coverage

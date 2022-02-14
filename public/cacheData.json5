@@ -1,6 +1,10 @@
+/*
+  file imported with JSON5 – JSON for Humans, see https://github.com/json5/json5
+  
+*/
 [{
   "name": "Wikipedia search",
-  "url": "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=Nelson%20Mandela&utf8=&format=json",
+  "url": "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=Nelson%20Mandela&utf8=&format=json&origin=*",
   "notes": "Home: https://www.mediawiki.org/wiki/API:Search\nError faq: https://www.mediawiki.org/w/api.php?action=help&modules=main\n Searc for cors"
 },{
   "name": "Teleport city search",
@@ -23,8 +27,8 @@
     "url":"https://www.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=ae7a8f0923f78862f2082cf39148b3bd&photo_id=51843886361&format=json&nojsoncallback=1",
     "notes":"Return JSON data about photo, inludes URL"
 },{
-    "name": "https://api.publicapis.org/entries?description=health",
-    "url": "",
+    "name": "health from api.publicapis.org",
+    "url": "https://api.publicapis.org/entries?description=health",
     "notes": ""
 },{
     "name": "Songsterr JSON endpoint",
@@ -47,10 +51,6 @@
     "url": "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=DEMO_KEY",
     "notes": "Extremely low res images"
 },{
-    "name": "https://jsonplaceholder.typicode.com/posts/1",
-    "url": "",
-    "notes": ""
-},{
     "name": "NBA todaysScoreboard",
     "url": "https://stats.nba.com/stats/scoreboard/todaysScoreboard_00.json",
     "notes": "API call fails",
@@ -71,8 +71,36 @@
     "user:USER_NAME"
    ]
 },{
+  "name": "Wayback Machine",
+  "url": "http://archive.org/wayback/available?url=example.com&timestamp=20060101",
+  "notes": "Home: https://archive.org/help/wayback_api.php\nIf not available/accessible: archived_snapshots==={}"
+},{
+  // test JSON5 handling
+  name: 'Open Geocoding API - Reverse Geocode',
+  "url": "http://open.mapquestapi.com/geocoding/v1/reverse?key=KEY&location=30.333472,-81.470448&includeRoadMetadata=true&includeNearestIntersection=true",
+  "notes": 'The reverse geocoding service allows a latitude and longitude to be converted to a location. \
+    \n\nhttps://developer.mapquest.com/documentation/open/geocoding-api/reverse/get/'
+},{
+  "name": "Open Search (Nominatim) API",
+  "url": "http://open.mapquestapi.com/nominatim/v1/search.php?key=KEY&format=json&q=windsor+[castle]&addressdetails=1&limit=3&viewbox=-1.99%2C52.02%2C0.78%2C50.94&exclude_place_ids=41697",
+  "notes": "Relies solely on data contributed to OpenStreetMap. \
+  Refer to the Nominatim Wiki page for a full list of the special phrases that result in Open Search (Nominatim) searching for a specific key=value pair.\
+  \n\nhttps://developer.mapquest.com/documentation/open/nominatim-search/"
+},{
+  "name": "ArcGIS Elevation Analysis services",
+  "url": "https://developers.arcgis.com/javascript/latest/api-reference",
+  "notes": "There are two general categories of Elevation Analysis services available for performing analysis. The first is Elevation analysis tasks, which operate on authoritative digital elevation models to derive surface information, such as calculating visible areas and profiles. The other category is Hydrology analysis tasks, which use elevation data and ancillary information to model the movement of water across the landscape for delineating watersheds and tracing downstream flow path. \
+  \n  https://developers.arcgis.com/rest/elevation/api-reference/get-started-with-elevation-services.htm \
+  "
+},{
+  "name": "Infermedica",
+  "url": "https://api.infermedica.com/v3",
+  "notes": " Home: https://developer.infermedica.com/docs/introduction \
+  \nInfermedica provides an API for patient triage and preliminary medical diagnosis that can help you implement an intelligent symptom checker or an adaptive patient intake form for your health application."
+},{
   "name": "",
-    "url": "",
-    "notes": ""
-  }
+  "url": "",
+  "notes": ""
+}
+
 ]

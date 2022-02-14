@@ -14,18 +14,25 @@ const CacheListbox = React.forwardRef((props, ref) => {
   
   function clickEvent( event ){
     let id = Number( event.target.dataset.id )
-    console.log( 111, id )
-    if( props.onSelect !== null )
-      props.onSelect( id )
+    if( props.select !== null )
+      props.select( id )
+  }
+  function dblClickEvent( event ){
+    let id = Number( event.target.dataset.id )
+    if( props.dblClick !== null )
+      props.dblClick( id )
   }
 
   let list = []
   cache.items.forEach( (itm, idx) => {
     let selected = ( itm.id === props.selectedID ?'selected' :null )
     list.push(
-      <span key={itm.id} onClick={clickEvent} className={selected}
+      <span key={itm.id} className={selected}
         data-id={itm.id} 
-        title={'URL: ' +itm.url} >
+        title={'URL: ' +itm.url} 
+        onClick={clickEvent} 
+        onDoubleClick={dblClickEvent} 
+      >
         {itm.id +'. ' +itm.name}
       </span>
     )
@@ -40,11 +47,13 @@ const CacheListbox = React.forwardRef((props, ref) => {
 
 CacheListbox.propTypes = {
   selectedID: PropTypes.number,
-  onSelect: PropTypes.func,
+  select: PropTypes.func,
+  dblClick: PropTypes.func
 }
 CacheListbox.defaultProps = {
   selectedID: 0,
-  onSelect: null
+  select: null,
+  dblClick: null
 }
 
 export default CacheListbox

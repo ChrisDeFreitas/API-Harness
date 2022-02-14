@@ -2,8 +2,11 @@ import React from 'react'
 
 import logo from './logo.svg';
 import './App.css';
+
 import APIForm from './APIForm.jsx';
 import cache from'./cache.js'
+
+// import FormDragHTML5 from './tmp/FormDragHTML5.jsx';
 
 function App() {
   
@@ -28,6 +31,7 @@ function App() {
       <APIForm 
         cacheitm={cacheitm}
       />
+      {/* <FormDragHTML5 /> */}
     </div>
   );
 }

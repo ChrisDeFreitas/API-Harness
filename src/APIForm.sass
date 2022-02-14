@@ -111,15 +111,18 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
   border: 2px #fff3 outset
   border-radius: 15px
   // box-shadow: 15px 15px 15px #0038
+  cursor: grab
   font-size: 14px
+  height: fit-content
+  // margin: 0 auto
   outline: 1px solid #0003
   padding: 1em
-  position: relative
-  top: -10vh
-  margin: 0 auto
-  height: fit-content
+  // position: relative
+  position: fixed
+  // left: calc( 50vw - 23em )
+  // top: 10vh //-10vh
   // max-height: 70vh
-  width: 45em
+  width: 630px
 
 .modeBar
   padding-left: 1em
@@ -161,6 +164,7 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
   border: 1px outset #000
   border-radius: 5px 5px 0 0
   border-bottom: 0
+  cursor: default
   height: auto
   margin: 0 auto 0 auto
   overflow: hidden
@@ -168,19 +172,25 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
   width: auto
   &:first-child
     margin: 0 auto
-  &.frmData
+  &.frmData,
+  &.frmGrid
     border-radius: 0 0 5px 5px 
     border-bottom: 1px outset #000
     border-top: 0
+  &.frmData
     height: 495px
     overflow-y: auto
     padding: 0 0 0.5em
+  &.frmGrid
+    overflow: visible
+    padding: 1px 0 0.5em
+    text-align: center
   &.frmCache
     border: 1px outset #000
     border-radius: 5px
     height: 614px
     .editBox_name
-      margin-top: 2em
+      margin-top: 1em
   &.frmEdit
     height: 454px
 
@@ -200,6 +210,16 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
   @include btnBar
   padding: 2px 8px 
   text-align: center
+  button
+    position: relative
+    top: -3px
+    left: 2em
+  .resultBarIcons
+    position: relative
+    left: 2em
+    top: -2px
+    .Thumb
+      backface-visibility: visible
 
 .editBox
   display: table
@@ -212,7 +232,7 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
     color: #000
     display: inline-table
     font-size: 0.8em
-    padding-left: 3em
+    padding-left: 2.5em
     position: relative
     text-shadow: 1px 1px #fff6
     top: 8px
@@ -224,13 +244,13 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
     border-radius: 5px
     color: #000
     font-family: sans-serif
-    font-size: 0.8em
+    font-size: 1em
     padding: 3px
-    width: 39em
+    width: 31em
   input:read-only,
   textarea:read-only
     border: 1px inset silver
-    background-color: #0002
+    background-color: transparent
     color: #000
     font-weight: 100
   input:disabled,
@@ -246,11 +266,13 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
     font-weight: bold
     padding-left: 2em
     width: 4em
-  input,
   textarea
-    width: 40em
+    font-size: 0.8em
+    width: 39em
 .frmHeader .editBox_url .btnIconPnl
   @include btnBar
+  position: relative
+  left: -0.5em  
   .cacheBar
     @include cacheBarStyle
     padding: 0 3em 0 0
@@ -267,20 +289,18 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
 .cachePnl
   display: inline-block
   height: auto
-  // left: -30px
-  padding-left: 0 1em
-  position: relative
+  // padding-left: 0 1em
   text-align: left
-  top: -20em
-  // width: 25em
+  vertical-align: top
   .editBox
     .heading
-      padding-left: 1em
+      padding-left: 0
       width: 3.5em
     input,
     textarea
-      width: 30em
-
+      font-size: 0.9em
+      width: 24em
+      
 .btnFetchCancel
   display: inline
   position: absolute
@@ -316,7 +336,8 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
 .logText,
 .resultText,
 .resultJSON,
-.resultXML
+.resultXML,
+.resultGrid
   background-color: #fff 
   border-radius: 5px
   font-size: 0.8em
@@ -324,12 +345,22 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
   overflow: auto
   padding: 1em
   text-align: left
-  width: 94%
+  max-width: 96vw
+  width: 96vw
 .resultText,
 .resultJSON,
 .resultXML
   height: 85%
   margin-top: 1em
+.resultText
+  width: 100%
+.resultGrid
+  background-color: transparent 
+  margin: 0 auto
+  width: fit-content
+  position: fixed
 .logText
   height: 94%
   line-height: 1.6em
+  width: 100%
+

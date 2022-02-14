@@ -5,7 +5,7 @@
 */
 'use strict'
 
-import q from "./lib.js";
+import q from "./public.js";
 
 const url = 'https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=522fdc88c5fec5c9f9598045831f4a42&tags=beach&format=json&nojsoncallback=1'
 let uobj = q.url.parse( url )

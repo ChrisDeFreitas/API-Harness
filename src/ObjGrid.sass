@@ -1,0 +1,103 @@
+
+@use "sass:color"
+
+.objGrid
+  background-color: #64151566
+  border: 1px outset silver
+  border-radius: 15px
+  font-weight: 100
+  header
+    color: #0006
+    font-size: 1.2em
+    font-weight: bold
+    margin: 10px 0 0px 2em
+  .gridSettingsPnl
+    border-radius: 7px
+    margin: 0 10px 0 10px
+    overflow: auto
+    table
+      border-collapse: collapse
+      margin: 0
+      // min-width: 25em
+      text-align: left
+      vertical-align: top
+      width: 100%
+      td
+        border: 1px solid #0003
+        padding: 3px
+        text-align: center
+        vertical-align: top
+        &[data-lvl="1"]
+          background-color: color.hwb( color.hue( #fff5de ) 90% 0%)
+        &[data-lvl="2"]
+          background-color: color.hwb( color.hue( #fff5de ) 80% 4%)
+        &[data-lvl="3"]
+          background-color: color.hwb( color.hue( #fff5de ) 70% 8%)                
+        &[data-lvl="4"]
+          background-color: color.hwb( color.hue( #fff5de ) 60% 12%)
+        &[data-lvl="5"]
+          background-color: color.hwb( color.hue( #fff5de ) 50% 16%)
+        &[data-lvl="6"]
+          background-color: color.hwb( color.hue( #fff5de ) 40% 20%)
+        span
+          cursor: pointer
+          padding: 2px
+        span[data-selected='true']
+          background-color: #099
+          color: #fff
+          font-weight: normal
+  .settingsBar
+    display: none
+    // margin-left: 2em
+    .btnIcon
+      color: #000a
+      font-weight: normal
+  .gridDataPnl
+    border-radius: 7px
+    margin: 10px
+    overflow: auto
+    table
+      border-collapse: collapse
+      margin: 0
+      text-align: left
+      vertical-align: top
+      th,
+      td
+        border: 1px solid #0003
+        color: #000
+        min-width: 3em
+        padding: 5px
+        text-align: left
+        vertical-align: top
+      th
+        background-color: #ffd6
+        font-weight: 100
+        padding: 0 5px
+        text-align: center
+        &[data-lvl="1"]
+          background-color: #fff
+      td
+        font-weight: normal
+        &[data-lvl="-1"]
+          background-color: #1a0099
+          color: #fff
+        &[data-lvl="1"]
+          background-color: color.hwb( color.hue( #fff5de ) 90% 0%)
+        &[data-lvl="2"]
+          background-color: color.hwb( color.hue( #fff5de ) 80% 4%)
+        &[data-lvl="3"]
+          background-color: color.hwb( color.hue( #fff5de ) 70% 8%)                
+        &[data-lvl="4"]
+          background-color: color.hwb( color.hue( #fff5de ) 60% 12%)
+        &[data-lvl="5"]
+          background-color: color.hwb( color.hue( #fff5de ) 50% 16%)
+        &[data-lvl="6"]
+          background-color: color.hwb( color.hue( #fff5de ) 40% 20%)
+        & .childTableTitle
+          font-style: italic
+        &[data-selected='true']
+          background-color: #099
+          color: #fff
+          font-weight: normal
+
+  

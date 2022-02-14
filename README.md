@@ -2,20 +2,36 @@
 
 - This repo is a backup and personal knowledge base. Use at your own discretion.
 - review ToDo list to see whats waiting to be fixed/implemented
-- built for FireFox
+- built for [**FireFox**](https://www.mozilla.org/firefox/new/)
+- tested with FireFox on Windows, Linux and iPadOS ( essentially Safari with Firefox skin )
 
 ## Goals 
 - create a general purpose tool to test API calls
 - simplify editing Headers and URL parameters
+- simplify viewing of data returned from endpoints
 - run on localhost for security
 - cache API calls short term in app memory (not Browser for security)
 - cache API calls and results long term in SQLite database
 
+## Tech Notes
+- JSON and XML can be manually pasted into Result Text
+- To Paste JSON/XML directly from Clipboard:  
+-- when page accessed via http, requires ([reference](https://stackoverflow.com/questions/67440036/navigator-clipboard-readtext-is-not-working-in-js)):  
+```
+    1. Enter about:config in navigation bar
+    2. Click "Accept the Risk and Continue"
+    3. Search dom.events.testing.asyncClipboard and set true
+```
+
+
 ## Thanks To
+- Animations with [Framer Motion](https://www.framer.com/docs/) and CSS
 - Background image, NBE_032-2.JPG, from unknown source (found in personal image archive)
 - Built with the [React UI library](https://reactjs.org/)
 - Code hosted on [Github](https://github.com/ChrisDeFreitas/guitarjoe)
+- Convert XML to JSON with [xml-js](https://www.npmjs.com/package/xml-js)
 - Icon library by [Google Fonts](https://fonts.google.com/icons)
+- [JSON5 – JSON for Humans](https://github.com/json5/json5)
 - [react-json-view](https://www.npmjs.com/package/react-json-view) Component
 - [react-xml-viewe](https://www.npmjs.com/package/react-xml-viewer) Component
 - [PNG API icon](https://www.flaticon.com/free-icon/api_3234207) from [flaticon.com](flaticon.com)  
@@ -24,21 +40,23 @@
 - Technical references from [Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web)
 
 ## ToDo
-- Private_class_fields: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields
-- Destructuring_assignment: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
-- Nullish_coalescing_operator: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing_operator
-- Optional_chaining: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
+- build server caching backend; api calls launched and stored on server
 - implement new logic for EditBox disable functionality. Disabled params need to exist in local and global caches. Currently, disabled status only stored in EditBox, so lost on React redraw--restored via Reload icon via APIForm.uobj.
-- allow form width to be expanded by user dragging
 - allow request type to be manually set; currently only GET used
-- build server caching backend
-- look into improving performance for large datasets  
--- JSON view = JSON.stringify( JSON.parse( jsonstring ), null, 3)  
--- xml view = function to iterate and insert indents per level ( level 3 = (3 x 3spaces) )  
--- custom viewer = iterate object and indents per level (potential to output HTML/JSX with functionality)  
---- xml/json view would be simple text view with indents
+
 
 ## Updates
+
+#### 20220213  
+- added Grid to Result tab: convert JSON and XML data for a grid output 
+- updated JSON Result tab: displays XML data converted to JSON
+- added Result Text feature: copy/paste JSON/XML data from clipboard 
+- added Result Text feature:  manually paste JSON/XML data into Result Textarea
+- new JSON5: now used to parse all JSON ( see: https://262.ecma-international.org/5.1/ )
+- renamed cacheData.json to cacheData.json5
+- cache update: loading cacheData.json5 from document.URL (React public folder)
+- cache update: store API Result and Log in cached record
+- tweaks and updates
 
 #### 20220128
 - added /cacheData.json to make it easy to edit
