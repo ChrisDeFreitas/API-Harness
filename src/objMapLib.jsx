@@ -207,15 +207,21 @@ var objMapLib = {
     }
     return items
   },
-  mapMake( obj, key, parent = null ){
+  mapMake( val, key, parent = null ){
     let map = { 
       id: ++this.lastId, 
       key: key, 
-      type: (  Array.isArray( obj ) ?'array' :typeof( obj )),
+      type: (  Array.isArray( val ) ?'array' :typeof( val )),
       lvl: ( parent === null ?0 :parent.lvl +1 ), 
       branch: 0, 
       path: ( parent === null ?'/' :parent.path +parent.key +'/' ),
-      selected: false
+      selected: false,
+      width: ( typeof val !== 'string' 
+        ?0 
+        : ( val.length < 50
+          ? 0
+          : val.length
+      ))
     }
     if( map.type === 'array' ) map.arType = '1d'    //default, reset in arrMapCreate
     return map
@@ -446,11 +452,13 @@ var objMapLib = {
       }
         
       if( map ){
+        let style = null  // fails to change td width:  (map.width === 0 ?null : { width:'50em' } )
         result = (  
           <td key={++keyid} 
             data-id={map.id}
             data-lvl={map.lvl}
             data-selected={map.selected}
+            style={ style }
           > 
             { tmp }
           </td>

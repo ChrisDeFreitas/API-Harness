@@ -356,9 +356,10 @@ $btnBgColor: color.scale( $btnBgColorSelected, $lightness: 0% )
   width: 100%
 .resultGrid
   background-color: transparent 
-  margin: 0 auto
   width: fit-content
-  position: fixed
+  position: fixed   // code below centers fixed components (???)
+  left: 50%
+  transform: translateX( -50% )
 .logText
   height: 94%
   line-height: 1.6em

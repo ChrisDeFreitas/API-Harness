@@ -60,6 +60,9 @@ class APIForm extends React.Component{
 
     // this.cacheitm is working data: url, notes, headers, log, resultData
     this.cacheitm = { ...props.cacheitm }
+    this.cacheitm.resultType = 'Text'    // one of: Text, JSON, XML
+    this.cacheitm.resultPnl = 'Text'     // one of: Text, JSON, XML, Grid
+    this.cacheitmresultTextState = 'ReadOnly'  //one of: ReadOnly, Edit (controls manually pasting JSON data)
     this.cacheitm.headers = [ ...props.cacheitm.headers ]
     if( this.cacheitm.headers.length === 0 ) this.cacheitm.headers.push('')
 
@@ -74,8 +77,6 @@ class APIForm extends React.Component{
 
       mode: 'Cache',   // one of: Cache, Edit, Log, Result
       execMode: 'Wait',   // one of: Wait, Exec, Done
-      resultType: 'Text',  // one of: Text, JSON, XML, Grid
-      resultTextState: 'ReadOnly',  //one of: ReadOnly, Edit (controls manually pasting JSON data)
 
       // working data
       ...this.uobj,       
@@ -110,12 +111,9 @@ class APIForm extends React.Component{
     this.cacheListSelect = this.cacheListSelect.bind( this )
     this.cacheListDblClick = this.cacheListDblClick.bind( this )
     
-    this.dragStart = this.dragStart.bind( this )
-    this.dragEnd = this.dragEnd.bind( this )
-    
     this.windowResize = this.windowResize.bind( this )
 
-    this.resultTypeSet = this.resultTypeSet.bind( this )
+    this.resultPnlSet = this.resultPnlSet.bind( this )
     this.resultTextCopy = this.resultTextCopy.bind( this )
     this.resultTextPaste = this.resultTextPaste.bind( this )
     this.resultManualPaste = this.resultManualPaste.bind( this )
@@ -125,40 +123,34 @@ class APIForm extends React.Component{
   componentDidUpdate(prevProps, prevState, snapshot){
     window.addEventListener('resize', this.windowResize )
     
-    if(this.state.execMode === 'Exec') 
-      this.pngRef.current.classList.add('pngIconSpin' )
-    else
-    if( this.pngRef.current != null )
-      this.pngRef.current.classList.remove('pngIconSpin' )
-
+    if( this.pngRef.current !== null ){
+      if(this.state.execMode === 'Exec') 
+        this.pngRef.current.classList.add('pngIconSpin' )
+      else
+      if( this.pngRef.current != null )
+        this.pngRef.current.classList.remove('pngIconSpin' )
+    }
       
-    if( this.state.mode === 'Result' && this.state.resultType === 'Grid' ){
+    if( this.state.mode === 'Result' && this.cacheitm.resultPnl === 'Grid' ){
       this.gridResize()
     }
     if(this.autoFocus === '') return
     this.autoFocusRef.current.focus()
     this.autoFocus = ''
   }
+  componentWillUnmount(){
+    window.removeEventListener('resize', this.windowResize )
+  }
   windowResize( event ){
     this.setState({ left: ((window.innerWidth /2) -330) })
-    if( this.state.mode === 'Result' && this.state.resultType === 'Grid' ){
+    if( this.state.mode === 'Result' && this.cacheitm.resultPnl === 'Grid' ){
       this.gridResize()
     }
   }
   gridResize(){
-      let ctrl = document.querySelector('.resultGrid')
-      if( ctrl.offsetWidth >= window.innerWidth){
-        let left = Number( ctrl.offsetLeft ) -30
-        ctrl.style.left = `-${left}px`
-        ctrl.style.width = `${ Number(window.innerWidth) -30}px`
-      }
-      else { //manually center
-        let left = ( Number(window.innerWidth)  -Number( ctrl.offsetWidth ) ) / 2
-        ctrl.style.left = `${left}px`
-      } 
-      ctrl = document.querySelector('.gridDataPnl')
-      let height = ( Number(window.innerHeight)  -Number( ctrl.getBoundingClientRect().top ) ) -30
-      ctrl.style.maxHeight = `${height}px`
+    let ctrl = document.querySelector('.gridDataPnl')
+    let height = ( Number(window.innerHeight)  -Number( ctrl.getBoundingClientRect().top ) ) -30
+    ctrl.style.maxHeight = `${height}px`
   }
   //
   fetch( event ){
@@ -172,11 +164,9 @@ class APIForm extends React.Component{
       str += '\nHeaders:\n' +headers.join( '\n' )
 
     this.cacheitm.result = ''
+    this.cacheItemReset()
     this.logWrite( 'Exec lib.fetch() with:', str, true )
     this.setState({ 
-      // resultData:'',
-      resultType:'Text',
-      resultTextState: 'ReadOnly',
       mode:'Log',
       execMode: 'Exec'
     })
@@ -231,12 +221,10 @@ class APIForm extends React.Component{
       }
   
       this.cacheitm.result = 'Error'
+      this.cacheItemReset()
       this.logWrite( 'Duration: ' +this.apiTimer +'ms' )
       this.logWrite( 'Debug: ' +debug )
       this.setState({ 
-        // resultData:'Error',
-        resultType:'Text',
-        resultTextState: 'ReadOnly',
         mode:'Log',
         execMode:'Done' 
       })
@@ -254,10 +242,8 @@ class APIForm extends React.Component{
 
     this.logWrite( 'Execution cancelled by user.' )
     this.logWrite( 'Duration: ' +this.apiTimer +'ms' )
+    this.cacheItemReset()
     this.setState({ 
-      // resultData:'Execution cancelled by user.',
-      resultType:'Text',
-      resultTextState: 'ReadOnly',
       mode:'Log',
       execMode:'Done',
     })
@@ -285,20 +271,26 @@ class APIForm extends React.Component{
   resultWrite( result ){
     let type = 'Text'
     if( typeof result === 'object' || result[0] === '{' || result[0] === '[')
-      type = 'Grid' //  'JSON'
+      type = 'JSON'
     else
     if( result.trim()[0] === '<' )
-      type = 'Grid' //  'XML'
+      type = 'XML'
 
     this.cacheitm.result = result
+    this.cacheitm.resultType = type
+    this.cacheitm.resultPnl = 'Grid'
+    this.cacheitm.resultTextState = 'ReadOnly'
     this.setState({ 
-      resultType:type,
-      resultTextState: 'ReadOnly',
       mode:'Result',
       execMode:'Done' 
     })
   }
 
+  cacheItemReset(){ //set to text defaults
+    this.cacheitm.resultType = 'Text'
+    this.cacheitm.resultPnl = 'Text'
+    this.cacheitm.resultTextState = 'ReadOnly'
+  }
   cacheToState( cacheitm ){
     cacheKeyId++// force name,notes repaint
     urlKeyId++  // force URL repaint
@@ -308,6 +300,7 @@ class APIForm extends React.Component{
 
     // working data
     this.cacheitm = { ...cacheitm }
+    this.cacheItemReset()
     this.cacheitm.headers = [ ...cacheitm.headers ]
     if( this.cacheitm.headers.length === 0) this.cacheitm.headers.push('')
 
@@ -320,8 +313,6 @@ class APIForm extends React.Component{
     this.logWrite( cacheitm.log, '', true )
     this.setState({ 
       execMode: 'Wait',
-      resultType: 'Text', 
-      resultTextState: 'ReadOnly',
 
       // working data      
       ...this.uobj,
@@ -487,13 +478,16 @@ class APIForm extends React.Component{
     window.open( this.cacheitm.url, '_blank' )
   }
 
-  resultTypeSet( event ){
+  resultPnlSet( event ){
     event.preventDefault()
     if( !event.target.dataset.type ) return
-    this.setState({ 
-      resultType:event.target.dataset.type,
-      resultTextState: 'ReadOnly',
-    })
+    this.cacheitm.resultPnl = event.target.dataset.type
+    this.cacheitm.resultTextState = 'ReadOnly'
+    this.forceUpdate()
+    // this.setState({ 
+    //   resultType:event.target.dataset.type,
+    //   resultTextState: 'ReadOnly',
+    // })
   }
   resultTextCopy( event ){
     if (window.isSecureContext) {
@@ -512,12 +506,10 @@ Use the edit/store buttons to manually paste XML/JSON data.
       try{
         navigator.clipboard.readText().then(
           clipText => {
+            this.cacheItemReset()
             this.cacheitm.result = clipText 
-            // console.log('APIForm.resultTextPaste():', clipText )
             this.logWrite( 'Text pasted from clipboard:', clipText, true )
             this.setState({ 
-              resultType:'Text',
-              resultTextState: 'ReadOnly',
               mode:'Log',
               execMode: 'Wait'
             })
@@ -541,11 +533,8 @@ Use the edit/store buttons to manually paste XML/JSON data.
     if( this.state.resultTextState === 'ReadOnly' ){
       if( this.resultTextRef.current !== null)
         this.resultTextRef.current.value = ''
-      this.setState({ 
-        mode:'Result',
-        resultType:'Text',
-        resultTextState:'Edit',
-       })
+      this.cacheItemReset()
+      this.setState({ mode:'Result' })
     }else
     if( this.state.resultTextState === 'Edit' ){ //store and process text
       if( this.resultTextRef.current === null){
@@ -556,11 +545,8 @@ Use the edit/store buttons to manually paste XML/JSON data.
       let txt = this.resultTextRef.current.value.trim()
       if( txt === ''){    //reset
         this.resultTextRef.current.value = this.cacheitm.result
-        this.setState({ 
-          mode:'Result',
-          resultType:'Text',
-          resultTextState:'ReadOnly' 
-        })
+        this.cacheItemReset()
+        this.setState({ mode:'Result' })
       }
       else {
         let obj = null
@@ -586,44 +572,15 @@ Use the edit/store buttons to manually paste XML/JSON data.
         }
         this.logWrite( `Text manually pasted:\n`, txt, true )
         this.logWrite( `Text converted to JSON:\n`, txt2 )
-        this.setState({ 
-          mode:'Log',
-          resultType:'Grid',
-          resultTextState:'ReadOnly' 
-        })
+        this.cacheitm.resultPnl = 'Grid'
+        this.cacheitm.resultTextState = 'ReadOnly'
+        this.setState({ mode:'Log' })
       }
     }
 
   }
 
-  dragStart( event ){
-    if( !event.nativeEvent.explicitOriginalTarget.classList
-    ||  !event.nativeEvent.explicitOriginalTarget.classList.contains('apiForm') ){
-      event.preventDefault()
-      return
-    }
-    event.dataTransfer.setData('startX', event.screenX )
-    event.dataTransfer.setData('startY', event.screenY )
-    // console.log( event.nativeEvent.explicitOriginalTarget.classList, 'dragStart:', event.screenX, event.screenY, event )
-  }
-  dragEnd( event ){
-    let ctrl = event.target
-    let dt = event.dataTransfer
-    let difX = Number(event.screenX) -Number( dt.getData( 'startX' ))
-    let difY = Number(event.screenY) -Number( dt.getData( 'startY' ))
-    let left = ctrl.offsetLeft +difX
-    let top = ctrl.offsetTop +difY
-    // console.log( 'dragEnd:\n', 
-    //   dt.getData( 'startX' ), event.screenX, difX, '\n',
-    //   dt.getData( 'startY' ), event.screenY, difY, '\n',
-    //   this.state.left, left, ctrl.offsetLeft,  '\n',
-    //   this.state.top, top, ctrl.offsetTop
-    // )
-    event.preventDefault()
-    this.setState({ top:top, left:left })
-  }
-
-
+  
   // create jsx
   getModeBar( mode ){
     let cacheitm = this.cacheitm
@@ -690,11 +647,7 @@ Use the edit/store buttons to manually paste XML/JSON data.
   render(){
     let state = this.state
     return (
-      <form className='apiForm' style={{left:state.left+'px', top:state.top+'px'}}
-        // draggable 
-        // onDragStart={this.dragStart}
-        // onDragEnd={this.dragEnd}
-      >
+      <form className='apiForm' style={{left:state.left+'px', top:state.top+'px'}} >
         { this.getModeBar( this.state.mode ) }
         { this.state.mode !== 'Cache' && this.getHeader()  }
         { this.state.mode === 'Cache' && this.renderCache() }
@@ -858,21 +811,14 @@ Use the edit/store buttons to manually paste XML/JSON data.
     )
   }
   renderResult(){
-    let state = this.state
-    let resultType = state.resultType
+    let resultType = this.cacheitm.resultType   //state.resultType
+    let resultPnl = this.cacheitm.resultPnl
     let resultData = this.cacheitm.result
     let isReadOnly = true
-    let isJSON = (
-      typeof resultData === 'object'
-      || resultData[0] === '{'  
-      || resultData[0] === '[' 
-    )
-    let isXML = (
-      typeof resultData !== 'object' && resultData.trim()[0] === '<'
-    )
-    if(resultType === 'Text'){
 
-      if( state.resultTextState === 'ReadOnly' ){
+    if(resultPnl === 'Text'){
+
+      if( this.cacheitm.resultTextState === 'ReadOnly' ){
         isReadOnly = true
         if( typeof resultData === 'object' )
           resultData = JSON.stringify( resultData, null, 3 )
@@ -883,15 +829,15 @@ Use the edit/store buttons to manually paste XML/JSON data.
       }
 
     } else
-    if(resultType === 'JSON' || resultType === 'Grid' ){
+    if(resultPnl === 'JSON' || resultPnl === 'Grid' ){
       
-      if( isXML === true){
+      if( resultType === 'XML' ){
         resultData = xmljs.xml2json( resultData, {arrayNotation:true, compact:true, object:false, spaces: 2 } )
         resultData = json5.parse( resultData )
       }
       else{
         try{
-          if( isJSON && typeof resultData !== 'object')
+          if( resultType === 'JSON' && typeof resultData !== 'object')
             resultData = json5.parse( resultData )
         }
         catch( err ){
@@ -903,34 +849,34 @@ Use the edit/store buttons to manually paste XML/JSON data.
 
     }
     return (
-      <div className={'frmPanel ' +(resultType === 'Grid' ?'frmGrid' :'frmData')} >
+      <div className={'frmPanel ' +(resultPnl === 'Grid' ?'frmGrid' :'frmData')} >
         <div className='resultBar' >
-          <button onClick={this.resultTypeSet} data-type='Text' 
-            className={ resultType === 'Text' ?'selected' :''} >Text</button>
-          { isXML 
-          && <button onClick={this.resultTypeSet} data-type='XML'  
-            className={ resultType === 'XML' ?'selected' :''} >XML</button> }
-          { (isJSON || isXML) 
-          && <button onClick={this.resultTypeSet} data-type='JSON' 
-              className={ resultType === 'JSON' ?'selected' :''}  >JSON</button> }
-          { (isJSON || isXML)
-          && <button onClick={this.resultTypeSet} data-type='Grid'  
-            className={ resultType === 'Grid' ?'selected' :''} >Grid</button> }
+          <button onClick={this.resultPnlSet} data-type='Text' 
+            className={ resultPnl === 'Text' ?'selected' :''} >Text</button>
+          { resultType === 'XML' 
+          && <button onClick={this.resultPnlSet} data-type='XML'  
+            className={ resultPnl === 'XML' ?'selected' :''} >XML</button> }
+          { ( resultType === 'JSON' || resultType === 'XML' ) 
+          && <button onClick={this.resultPnlSet} data-type='JSON' 
+              className={ resultPnl === 'JSON' ?'selected' :''}  >JSON</button> }
+          { ( resultType === 'JSON' || resultType === 'XML' ) 
+          && <button onClick={this.resultPnlSet} data-type='Grid'  
+            className={ resultPnl === 'Grid' ?'selected' :''} >Grid</button> }
           <span className='resultBarIcons'>
-            { state.resultTextState === 'ReadOnly' &&
+            { this.cacheitm.resultTextState === 'ReadOnly' &&
               <span onClick={this.resultManualPaste} className="material-icons btnIcon" title='Click to manually paste XML/JSON data into Textarea.'>mode_edit</span> }
-            { state.resultTextState === 'Edit' &&
+            { this.cacheitm.resultTextState === 'Edit' &&
               <motion.span onClick={this.resultManualPaste} className="material-icons btnIcon Thumb" title='Click to store and process manually pasted JSON data.'
                 animate={{ scale: [1, 2, 1] }}
                 transition={{ repeat: Infinity, duration: 2 }}
               >thumb_up</motion.span> }
-            { state.resultTextState === 'ReadOnly' &&
+            { this.cacheitm.resultTextState === 'ReadOnly' &&
               <span onClick={this.resultTextCopy} className="material-icons btnIcon" title='Copy API result text to clipboard'>content_copy</span> }
-            { state.resultTextState === 'ReadOnly' &&
+            { this.cacheitm.resultTextState === 'ReadOnly' &&
               <span onClick={this.resultTextPaste} className="material-icons btnIcon" title='Paste XML/JSON from clipboard'>content_paste_go</span> }
           </span>
         </div>
-        { resultType === 'Text' 
+        { resultPnl === 'Text' 
         && <textarea key='resulttext' ref={ this.resultTextRef }
             className='resultText'
             readOnly={isReadOnly}
@@ -938,7 +884,16 @@ Use the edit/store buttons to manually paste XML/JSON data.
             wrap='on'
           />
         }
-        { resultType === 'JSON'  
+        { resultPnl === 'XML'  && 
+          <div className='resultXML' >
+            <XMLViewer key='resultxml'
+              xml={ resultData }
+              indentSize={ 3 }
+              collapsible={ true }
+            />
+          </div>
+        }
+        { resultPnl === 'JSON'  
         && <div className='resultJSON' >
             <ReactJson key='resultjson'
               src={ typeof resultData === 'object'
@@ -963,16 +918,7 @@ Use the edit/store buttons to manually paste XML/JSON data.
             />
           </div>
         }
-        { resultType === 'XML'  && 
-          <div className='resultXML' >
-            <XMLViewer key='resultxml'
-              xml={ resultData }
-              indentSize={ 3 }
-              collapsible={ true }
-            />
-          </div>
-        }
-        { resultType === 'Grid'
+        { resultPnl === 'Grid'
         && <div className='resultGrid' >
             <ObjGrid key='resultGrid' 
               obj={ resultData }

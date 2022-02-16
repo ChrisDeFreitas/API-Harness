@@ -47,6 +47,12 @@
 
 ## Updates
 
+#### 20220216  
+- added window.removeEventListener( GridResize )
+- centered Result Grid using CSS
+- refactored Result tab code 
+- tweaks and updates
+
 #### 20220213  
 - added Grid to Result tab: convert JSON and XML data for a grid output 
 - updated JSON Result tab: displays XML data converted to JSON
